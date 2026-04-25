@@ -1,0 +1,13 @@
+{
+  "short_name": "MAYA",
+  "name": "MAYA — Riviera Maya Insider",
+  "description": "Your insider guide to the Riviera Maya",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#0a1628",
+  "background_color": "#0a1628",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "favicon.ico", "sizes": "64x64", "type": "image/x-icon" }
+  ]
+}
