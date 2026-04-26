@@ -509,7 +509,7 @@ export default function App() {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "x-api-key": process.env.REACT_APP_ANTHROPIC_API_KEY,
+          "x-api-key": "sk-ant-api03-TH7pG2Y3Uv4E2c3wIm0mD3Zwk8XdQ4W4AC41FVY513Av-t5xV9ugld-ekqluoa7MMblt-dG5Hz7Yzz4SzbwKfg-erYJzgAA",
           "anthropic-version": "2023-06-01",
           "anthropic-dangerous-direct-browser-access": "true"
         },
