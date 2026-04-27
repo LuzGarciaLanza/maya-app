@@ -458,7 +458,11 @@ function openWhatsApp(phone, message) {
   window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
 }
 
-export default function App() {
+function renderWithLinks(text) {
+  return text.split(/\[\[([^\]]+)\]\]/).map((part, i) =>
+    i % 2 === 1 ? <a key={i} href={`https://www.google.com/maps/search/${encodeURIComponent(part)}+Playa+del+Carmen`} target="_blank" rel="noopener noreferrer" style={{color:"#00ACC1",textDecoration:"underline",fontWeight:"bold"}}>{part}</a> : part
+  );
+}export default function App() {
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("landing"); // landing | chat | deals
   const [messages, setMessages] = useState([]);
@@ -799,8 +803,7 @@ export default function App() {
               {m.preview && <div style={{ borderRadius: 12, overflow: "hidden", maxWidth: 200, border: "2px solid rgba(0,172,193,0.4)" }}><img src={m.preview} alt="" style={{ width: "100%", display: "block" }} /></div>}
               {(m.content || m.role === "assistant") && (
                 <div style={{ padding: "9px 13px", borderRadius: m.role === "user" ? "16px 16px 3px 16px" : "16px 16px 16px 3px", background: m.role === "user" ? "linear-gradient(135deg, #00897B, #00ACC1)" : "white", color: m.role === "user" ? "white" : "#1a2332", fontSize: 13, lineHeight: 1.65, boxShadow: "0 1px 5px rgba(0,0,0,0.07)", whiteSpace: "pre-wrap" }}>
-                  {m.content}
-                </div>
+               {m.role === "assistant" ? renderWithLinks(m.content) : m.content}                </div>
               )}
             </div>
           </div>
