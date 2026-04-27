@@ -508,10 +508,9 @@ export default function App() {
       const res = await fetch("/.netlify/functions/claude", {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json",
-         
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
+        body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || "Sorry, something went wrong!";
