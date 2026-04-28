@@ -510,15 +510,10 @@ export default function App() {
         }
         return { role: m.role, content: m.content };
       });
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("/.netlify/functions/claude", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-api-key": "sk-ant-api03-TH7pG2Y3Uv4E2c3wIm0mD3Zwk8XdQ4W4AC41FVY513Av-t5xV9ugld-ekqluoa7MMblt-dG5Hz7Yzz4SzbwKfg-erYJzgAA",
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true"
-        },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || "Sorry, something went wrong!";
