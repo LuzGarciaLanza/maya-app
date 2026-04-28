@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 
+const FREE_LIMIT = 3;
+
 // ─── SYSTEM PROMPT (abbreviated — same deep knowledge as V5) ───────────────
 const SYSTEM_PROMPT = `You are MAYA — the ultimate insider guide for the Riviera Maya, Mexico. Created by a local expert with 25 years living in Playa del Carmen as a destination rep, licensed realtor, and interior design professional.
 
@@ -7,7 +9,8 @@ PERSONALITY: Warm, honest, outgoing, practical. Speak like a trusted LOCAL FRIEN
 
 LANGUAGE RULE: ALWAYS respond in the SAME language the user writes in (English, French, or Spanish). Never switch unless asked.
 
-DEALS: When asked about deals or discounts, direct users to the 🎫 Deals section in the menu. MAPS: Wrap all physical places in [[double brackets]]. Example: [[El Fogon]], [[Cenote Dos Ojos]].
+DEALS: When asked about deals or discounts, direct users to the 🎫 Deals section in the menu.
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🐾 PETS & DOGS — COMPLETE GUIDE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -457,11 +460,7 @@ function openWhatsApp(phone, message) {
   window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
 }
 
-function renderWithLinks(text) {
-  return text.split(/\[\[([^\]]+)\]\]/).map((part, i) =>
-    i % 2 === 1 ? <a key={i} href={`https://www.google.com/maps/search/${encodeURIComponent(part)}+Playa+del+Carmen`} target="_blank" rel="noopener noreferrer" style={{color:"#00ACC1",textDecoration:"underline",fontWeight:"bold"}}>{part}</a> : part
-  );
-}export default function App() {
+export default function App() {
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("landing"); // landing | chat | deals
   const [messages, setMessages] = useState([]);
@@ -470,6 +469,9 @@ function renderWithLinks(text) {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageBase64, setImageBase64] = useState(null);
   const [expandedDeal, setExpandedDeal] = useState(null);
+  const [freeCount, setFreeCount] = useState(() => parseInt(localStorage.getItem('maya_free') || '0'));
+  const [hasAccess, setHasAccess] = useState(() => localStorage.getItem('maya_access') === 'true');
+  const [showPaywall, setShowPaywall] = useState(false);
   const bottomRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -508,12 +510,15 @@ function renderWithLinks(text) {
         }
         return { role: m.role, content: m.content };
       });
-      const res = await fetch("/.netlify/functions/claude", {
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { 
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "x-api-key": "sk-ant-api03-TH7pG2Y3Uv4E2c3wIm0mD3Zwk8XdQ4W4AC41FVY513Av-t5xV9ugld-ekqluoa7MMblt-dG5Hz7Yzz4SzbwKfg-erYJzgAA",
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true"
         },
-        body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
+        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
       });
       const data = await res.json();
       const reply = data.content?.[0]?.text || "Sorry, something went wrong!";
@@ -555,12 +560,18 @@ function renderWithLinks(text) {
   async function sendMessage(text) {
     const txt = text || input.trim();
     if ((!txt && !imageBase64) || loading) return;
+    if (!hasAccess && freeCount >= FREE_LIMIT) { setShowPaywall(true); return; }
     setInput("");
     const newMsg = imageBase64
       ? { role: "user", content: txt || "", image: imageBase64.data, imageType: imageBase64.type, preview: imagePreview }
       : { role: "user", content: txt };
     const newMsgs = [...messages, newMsg];
     setMessages(newMsgs);
+    if (!hasAccess) {
+      const newCount = freeCount + 1;
+      setFreeCount(newCount);
+      localStorage.setItem('maya_free', newCount);
+    }
     await sendToAPI(newMsgs);
   }
 
@@ -766,6 +777,12 @@ function renderWithLinks(text) {
         <button onClick={() => setScreen("deals")} style={{ background: "rgba(255,213,79,0.15)", border: "1px solid rgba(255,213,79,0.3)", color: "#FFD54F", padding: "4px 10px", borderRadius: 20, fontSize: 10, cursor: "pointer", fontFamily: "Arial" }}>
           🎫 {tText.deals}
         </button>
+        {!hasAccess && (
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", fontFamily: "Arial", textAlign: "center", lineHeight: 1.3 }}>
+            <span style={{ color: freeCount >= FREE_LIMIT ? "#ff6b6b" : "#80DEEA" }}>{Math.max(0, FREE_LIMIT - freeCount)}</span>
+            <br/>free
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 5, padding: "7px 8px", overflowX: "auto", background: "white", borderBottom: "1px solid #e8ecf0", scrollbarWidth: "none" }}>
@@ -802,7 +819,8 @@ function renderWithLinks(text) {
               {m.preview && <div style={{ borderRadius: 12, overflow: "hidden", maxWidth: 200, border: "2px solid rgba(0,172,193,0.4)" }}><img src={m.preview} alt="" style={{ width: "100%", display: "block" }} /></div>}
               {(m.content || m.role === "assistant") && (
                 <div style={{ padding: "9px 13px", borderRadius: m.role === "user" ? "16px 16px 3px 16px" : "16px 16px 16px 3px", background: m.role === "user" ? "linear-gradient(135deg, #00897B, #00ACC1)" : "white", color: m.role === "user" ? "white" : "#1a2332", fontSize: 13, lineHeight: 1.65, boxShadow: "0 1px 5px rgba(0,0,0,0.07)", whiteSpace: "pre-wrap" }}>
-               {m.role === "assistant" ? renderWithLinks(m.content) : m.content}                </div>
+                  {m.content}
+                </div>
               )}
             </div>
           </div>
@@ -840,6 +858,32 @@ function renderWithLinks(text) {
           style={{ background: (loading || (!input.trim() && !imageBase64)) ? "#b2dfdb" : "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: "50%", width: 42, height: 42, cursor: (loading || (!input.trim() && !imageBase64)) ? "default" : "pointer", color: "white", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>➤</button>
       </div>
       <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}} *{box-sizing:border-box} ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:2px}`}</style>
+
+      {showPaywall && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: "#0d2137", border: "1px solid rgba(0,172,193,0.3)", borderRadius: 20, padding: 28, maxWidth: 340, width: "100%", textAlign: "center" }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🌴</div>
+            <div style={{ color: "#80DEEA", fontWeight: "bold", fontSize: 18, letterSpacing: 2, marginBottom: 8 }}>MAYA</div>
+            <div style={{ color: "white", fontSize: 14, marginBottom: 6 }}>
+              {{ en: "You've used your 3 free questions!", es: "¡Usaste tus 3 preguntas gratis!", fr: "Tu as utilisé tes 3 questions gratuites!" }[lang]}
+            </div>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "Arial", marginBottom: 20, lineHeight: 1.6 }}>
+              {{ en: "Get full access — unlimited questions, photo translation & exclusive deals.", es: "Acceso completo — preguntas ilimitadas, traducción de fotos y descuentos exclusivos.", fr: "Accès complet — questions illimitées, traduction photos et bons plans exclusifs." }[lang]}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              <button onClick={() => { alert(lang === "es" ? "Próximamente — sistema de pago en construcción 🚧" : lang === "fr" ? "Bientôt disponible — système de paiement en construction 🚧" : "Coming soon — payment system under construction 🚧"); }} style={{ background: "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", color: "white", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
+                {{ en: "🗓️ 30-Day Access — $7 USD", es: "🗓️ Acceso 30 días — $7 USD", fr: "🗓️ Accès 30 jours — 7 USD" }[lang]}
+              </button>
+              <button onClick={() => { alert(lang === "es" ? "Próximamente — sistema de pago en construcción 🚧" : lang === "fr" ? "Bientôt disponible — système de paiement en construction 🚧" : "Coming soon — payment system under construction 🚧"); }} style={{ background: "linear-gradient(135deg, rgba(255,213,79,0.2), rgba(255,160,0,0.15))", border: "1px solid rgba(255,213,79,0.4)", color: "#FFD54F", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
+                {{ en: "⭐ Annual Access — $19 USD", es: "⭐ Acceso Anual — $19 USD", fr: "⭐ Accès Annuel — 19 USD" }[lang]}
+              </button>
+            </div>
+            <button onClick={() => setShowPaywall(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer", fontFamily: "Arial" }}>
+              {{ en: "Close", es: "Cerrar", fr: "Fermer" }[lang]}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
