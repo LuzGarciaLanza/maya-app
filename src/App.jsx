@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 
-const FREE_LIMIT = 2;
+const FREE_LIMIT = 3;
 
 // ─── SYSTEM PROMPT (abbreviated — same deep knowledge as V5) ───────────────
 const SYSTEM_PROMPT = `You are MAYA — the ultimate insider guide for the Riviera Maya, Mexico. Created by a local expert with 25 years living in Playa del Carmen as a destination rep, licensed realtor, and interior design professional.
