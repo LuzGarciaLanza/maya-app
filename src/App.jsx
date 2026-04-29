@@ -866,10 +866,10 @@ export default function App() {
               {{ en: "Get full access — unlimited questions, photo translation & exclusive deals.", es: "Acceso completo — preguntas ilimitadas, traducción de fotos y descuentos exclusivos.", fr: "Accès complet — questions illimitées, traduction photos et bons plans exclusifs." }[lang]}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
-              <button onClick={() => { alert(lang === "es" ? "Próximamente — sistema de pago en construcción 🚧" : lang === "fr" ? "Bientôt disponible 🚧" : "Coming soon — payment system under construction 🚧"); }} style={{ background: "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", color: "white", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
+              <button onClick={() => { alert(lang === "es" ? "Próximamente — sistema de pago en construcción 🚧" : lang === "fr" ? "Bientôt disponible 🚧" : "https://buy.stripe.com/7sYaEY7Iaa4o3jW5f53Je00"); }} style={{ background: "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", color: "white", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
                 {{ en: "🗓️ 30-Day Access — $7 USD", es: "🗓️ Acceso 30 días — $7 USD", fr: "🗓️ Accès 30 jours — 7 USD" }[lang]}
               </button>
-              <button onClick={() => { alert(lang === "es" ? "Próximamente — sistema de pago en construcción 🚧" : lang === "fr" ? "Bientôt disponible 🚧" : "Coming soon — payment system under construction 🚧"); }} style={{ background: "linear-gradient(135deg, rgba(255,213,79,0.2), rgba(255,160,0,0.15))", border: "1px solid rgba(255,213,79,0.4)", color: "#FFD54F", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
+              <button onClick={() => { alert(lang === "es" ? "Próximamente — sistema de pago en construcción 🚧" : lang === "fr" ? "Bientôt disponible 🚧" : "https://buy.stripe.com/7sY8wQ9Qi4K44o0gXN3Je01"); }} style={{ background: "linear-gradient(135deg, rgba(255,213,79,0.2), rgba(255,160,0,0.15))", border: "1px solid rgba(255,213,79,0.4)", color: "#FFD54F", padding: "13px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
                 {{ en: "⭐ Annual Access — $19 USD", es: "⭐ Acceso Anual — $19 USD", fr: "⭐ Accès Annuel — 19 USD" }[lang]}
               </button>
             </div>
