@@ -532,7 +532,7 @@ export default function App() {
     if (cat.id === "deals") { setScreen("deals"); return; }
     const q = firstQ[cat.id]?.[lang];
     if (!q) return;
-    const greet = { role: "assistant", content: greeting[lang] };
+    const greet = { role: "assistant", content: greeting[lang], sargassumLink: cat.id === "sargassum" };
     const user = { role: "user", content: q };
     setMessages([greet, user]);
     setScreen("chat");
@@ -816,6 +816,11 @@ export default function App() {
                 <div style={{ padding: "9px 13px", borderRadius: m.role === "user" ? "16px 16px 3px 16px" : "16px 16px 16px 3px", background: m.role === "user" ? "linear-gradient(135deg, #00897B, #00ACC1)" : "white", color: m.role === "user" ? "white" : "#1a2332", fontSize: 13, lineHeight: 1.65, boxShadow: "0 1px 5px rgba(0,0,0,0.07)", whiteSpace: "pre-wrap" }}>
                   {m.content}
                 </div>
+              )}
+              {m.sargassumLink && (
+                <a href="https://sargassummonitoring.com" target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 20, background: "linear-gradient(135deg, #00897B, #00ACC1)", color: "white", fontSize: 12, fontWeight: 600, textDecoration: "none", boxShadow: "0 2px 8px rgba(0,137,123,0.35)" }}>
+                  🌊 {lang === "es" ? "Mapa en tiempo real" : lang === "fr" ? "Carte en temps réel" : "Real-time map"}
+                </a>
               )}
             </div>
           </div>
