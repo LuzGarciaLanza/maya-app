@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#0a1628" />
+  <title>MAYA — Terms & Privacy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a1628;
+      color: rgba(255,255,255,0.82);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+    a { color: #80DEEA; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(135deg, #0a1628, #0d2137);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0,172,193,0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; }
+    .logo-icon { font-size: 20px; }
+    .logo-name { font-weight: bold; letter-spacing: 3px; font-size: 14px; color: #80DEEA; font-family: Georgia, serif; }
+    .logo-sub { font-size: 9px; color: rgba(255,255,255,0.25); letter-spacing: 1px; margin-left: 4px; }
+
+    .lang-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.35);
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 9px;
+      cursor: pointer;
+      font-family: Arial;
+      letter-spacing: 1px;
+      margin-left: 4px;
+      transition: all 0.15s;
+    }
+    .lang-btn.active {
+      background: rgba(0,172,193,0.2);
+      border-color: rgba(0,172,193,0.5);
+      color: white;
+    }
+
+    /* ── CONTENT ── */
+    .container { max-width: 680px; margin: 0 auto; padding: 36px 20px 60px; }
+
+    .page-title {
+      font-family: Georgia, serif;
+      font-size: 22px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #80DEEA, #26C6DA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .page-subtitle {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .updated {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      margin-bottom: 36px;
+    }
+
+    .section {
+      margin-bottom: 32px;
+      padding: 22px 20px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(0,172,193,0.1);
+      border-radius: 14px;
+    }
+    .section-title {
+      font-family: Georgia, serif;
+      font-size: 13px;
+      font-weight: bold;
+      color: #80DEEA;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section p { margin-bottom: 10px; color: rgba(255,255,255,0.7); font-size: 13px; }
+    .section p:last-child { margin-bottom: 0; }
+    .section ul { padding-left: 18px; color: rgba(255,255,255,0.7); font-size: 13px; }
+    .section ul li { margin-bottom: 6px; }
+
+    .disclaimer-box {
+      background: rgba(0,172,193,0.07);
+      border: 1px solid rgba(0,172,193,0.25);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      margin-top: 10px;
+    }
+    .warning-box {
+      background: rgba(255,160,0,0.07);
+      border: 1px solid rgba(255,160,0,0.2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: rgba(255,213,79,0.8);
+      margin-top: 10px;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      padding: 24px 20px 40px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 1px;
+    }
+    .footer a { color: rgba(255,255,255,0.25); }
+
+    /* ── LANGUAGE SECTIONS ── */
+    .lang-section { display: none; }
+    .lang-section.visible { display: block; }
+
+    /* ── BACK LINK ── */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.3);
+      font-size: 11px;
+      letter-spacing: 1px;
+      margin-bottom: 28px;
+      cursor: pointer;
+    }
+    .back-link:hover { color: rgba(255,255,255,0.6); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <span class="logo-icon">🌴</span>
+    <span class="logo-name">MAYA</span>
+    <span class="logo-sub">Riviera Maya</span>
+  </div>
+  <div>
+    <button class="lang-btn active" onclick="setLang('en')" id="btn-en">EN</button>
+    <button class="lang-btn" onclick="setLang('es')" id="btn-es">ES</button>
+    <button class="lang-btn" onclick="setLang('fr')" id="btn-fr">FR</button>
+  </div>
+</div>
+
+<div class="container">
+  <a class="back-link" href="/" id="back-link">← Back to MAYA</a>
+
+  <!-- ══════════════════ ENGLISH ══════════════════ -->
+  <div class="lang-section visible" id="lang-en">
+    <div class="page-title">MAYA</div>
+    <div class="page-subtitle">Terms of Use & Privacy Policy</div>
+    <div class="updated">Last updated: May 2, 2026 · holamaya.lat</div>
+
+    <div class="section">
+      <div class="section-title">🌴 About MAYA</div>
+      <p>MAYA is an AI-powered informational chatbot designed to help travelers explore the Riviera Maya, Mexico. The service covers topics such as beaches, restaurants, safety, transport, cenotes, local tips, and more.</p>
+      <p>MAYA is operated by <strong>holamaya.lat</strong> and is available at <a href="https://maya-app-one.vercel.app">maya-app-one.vercel.app</a>.</p>
+      <div class="disclaimer-box">MAYA is an informational guide only — not a travel agency, booking platform, or professional advisor.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚠️ Information Disclaimer</div>
+      <p>All content provided by MAYA — including prices, schedules, opening hours, and recommendations — is <strong>for general guidance only</strong>. This information may be outdated, incomplete, or subject to change without notice.</p>
+      <div class="warning-box">
+        ⚠️ Always verify prices, hours, and availability directly with the business before visiting. MAYA is not responsible for discrepancies between information provided and actual conditions.
+      </div>
+      <p style="margin-top:12px">MAYA does <strong>not</strong> provide:</p>
+      <ul>
+        <li>Medical advice or health recommendations</li>
+        <li>Legal advice of any kind</li>
+        <li>Financial or investment advice</li>
+        <li>Emergency services or crisis assistance</li>
+      </ul>
+      <p>In any emergency, please contact local authorities: <strong>911 (Mexico)</strong>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">💳 Payments & Subscriptions</div>
+      <p>Access to the full MAYA service requires a paid subscription processed securely through <strong>Stripe</strong>.</p>
+      <ul>
+        <li><strong>30-Day Access — $7 USD:</strong> One-time payment for 30 days of unlimited access.</li>
+        <li><strong>Annual Access — $19 USD:</strong> One-time payment for 365 days of unlimited access.</li>
+      </ul>
+      <p>All payments are processed in USD. Prices are subject to change with advance notice.</p>
+      <p><strong>Refund policy:</strong> Due to the digital and immediate nature of the service, all sales are final. If you experience a technical issue preventing access, contact us at <a href="https://holamaya.lat">holamaya.lat</a> within 48 hours of purchase.</p>
+      <p><strong>No automatic renewal:</strong> Current plans are one-time payments only and do not renew automatically.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🔒 Privacy Policy</div>
+      <p><strong>What we collect:</strong></p>
+      <ul>
+        <li><strong>Payment data:</strong> Processed entirely by Stripe. MAYA does not store credit card numbers or financial credentials.</li>
+        <li><strong>Usage data:</strong> Anonymized data about feature usage (e.g., which topics are most queried) to improve the service.</li>
+        <li><strong>Conversation data:</strong> Chat messages are sent to Anthropic's API to generate responses. Messages are not stored by MAYA beyond the active session.</li>
+        <li><strong>Local storage:</strong> A usage counter is stored in your browser's local storage to manage the free question limit. No personal data is included.</li>
+      </ul>
+      <p><strong>What we do NOT collect:</strong> We do not collect your name, email, phone number, or location unless you voluntarily provide it in chat.</p>
+      <p><strong>Third-party services:</strong> MAYA uses Stripe (payments) and Anthropic (AI responses). Each service operates under its own privacy policy.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🌍 Legal Compliance</div>
+      <p><strong>Mexico — LFPDPPP:</strong> MAYA complies with the Ley Federal de Protección de Datos Personales en Posesión de los Particulares. You have the right to access, correct, cancel, or object to the processing of your personal data (derechos ARCO) by contacting us at <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+      <p><strong>European Union — GDPR:</strong> If you are located in the EU, you have the right to access, rectify, erase, restrict, or port your personal data, and to withdraw consent at any time. To exercise these rights, contact us at <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+      <p><strong>California — CCPA:</strong> California residents have the right to know what personal information is collected, to delete it, and to opt out of its sale. MAYA does not sell personal data. To exercise your rights, contact us at <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚖️ Limitation of Liability</div>
+      <p>MAYA and its operators shall not be liable for any direct, indirect, incidental, or consequential damages arising from the use of or reliance on information provided by this service.</p>
+      <p>This includes but is not limited to: incorrect prices, closed businesses, changed schedules, personal injury, property damage, or financial loss resulting from following MAYA's suggestions.</p>
+      <p>Use of MAYA constitutes acceptance of these terms.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">✉️ Contact</div>
+      <p>For questions about these terms, privacy requests, or technical support:</p>
+      <p><strong>Website:</strong> <a href="https://holamaya.lat">holamaya.lat</a></p>
+      <p>We aim to respond within 5 business days.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════ ESPAÑOL ══════════════════ -->
+  <div class="lang-section" id="lang-es">
+    <div class="page-title">MAYA</div>
+    <div class="page-subtitle">Términos de Uso y Política de Privacidad</div>
+    <div class="updated">Última actualización: 2 de mayo de 2026 · holamaya.lat</div>
+
+    <div class="section">
+      <div class="section-title">🌴 Sobre MAYA</div>
+      <p>MAYA es un chatbot informativo impulsado por inteligencia artificial, diseñado para ayudar a los viajeros a explorar la Riviera Maya, México. El servicio cubre temas como playas, restaurantes, seguridad, transporte, cenotes, consejos locales y más.</p>
+      <p>MAYA es operado por <strong>holamaya.lat</strong> y está disponible en <a href="https://maya-app-one.vercel.app">maya-app-one.vercel.app</a>.</p>
+      <div class="disclaimer-box">MAYA es únicamente una guía informativa — no es una agencia de viajes, plataforma de reservas ni asesor profesional.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚠️ Aviso Legal sobre la Información</div>
+      <p>Todo el contenido proporcionado por MAYA — incluyendo precios, horarios, horas de apertura y recomendaciones — es <strong>únicamente orientativo</strong>. Esta información puede estar desactualizada, ser incompleta o estar sujeta a cambios sin previo aviso.</p>
+      <div class="warning-box">
+        ⚠️ Siempre verifica precios, horarios y disponibilidad directamente con el establecimiento antes de visitarlo. MAYA no se hace responsable de discrepancias entre la información proporcionada y las condiciones reales.
+      </div>
+      <p style="margin-top:12px">MAYA <strong>no</strong> proporciona:</p>
+      <ul>
+        <li>Asesoramiento médico ni recomendaciones de salud</li>
+        <li>Asesoramiento legal de ningún tipo</li>
+        <li>Asesoramiento financiero o de inversión</li>
+        <li>Servicios de emergencia ni asistencia en crisis</li>
+      </ul>
+      <p>En caso de emergencia, comunícate con las autoridades locales: <strong>911 (México)</strong>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">💳 Pagos y Suscripciones</div>
+      <p>El acceso completo al servicio MAYA requiere una suscripción de pago procesada de forma segura a través de <strong>Stripe</strong>.</p>
+      <ul>
+        <li><strong>Acceso 30 días — $7 USD:</strong> Pago único por 30 días de acceso ilimitado.</li>
+        <li><strong>Acceso Anual — $19 USD:</strong> Pago único por 365 días de acceso ilimitado.</li>
+      </ul>
+      <p>Todos los pagos se procesan en dólares estadounidenses (USD). Los precios pueden modificarse con aviso previo.</p>
+      <p><strong>Política de reembolso:</strong> Debido a la naturaleza digital e inmediata del servicio, todas las ventas son definitivas. Si experimentas un problema técnico que impida el acceso, contáctanos en <a href="https://holamaya.lat">holamaya.lat</a> dentro de las 48 horas posteriores a la compra.</p>
+      <p><strong>Sin renovación automática:</strong> Los planes actuales son pagos únicos y no se renuevan automáticamente.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🔒 Política de Privacidad</div>
+      <p><strong>Qué recopilamos:</strong></p>
+      <ul>
+        <li><strong>Datos de pago:</strong> Procesados íntegramente por Stripe. MAYA no almacena números de tarjeta ni credenciales financieras.</li>
+        <li><strong>Datos de uso:</strong> Información anonimizada sobre el uso de funciones (por ejemplo, qué temas se consultan más) para mejorar el servicio.</li>
+        <li><strong>Conversaciones:</strong> Los mensajes del chat se envían a la API de Anthropic para generar respuestas. MAYA no los almacena más allá de la sesión activa.</li>
+        <li><strong>Almacenamiento local:</strong> Un contador de uso se guarda en el almacenamiento local de tu navegador para gestionar el límite de preguntas gratuitas. No se incluyen datos personales.</li>
+      </ul>
+      <p><strong>Qué NO recopilamos:</strong> No recopilamos tu nombre, correo electrónico, teléfono ni ubicación, a menos que lo proporciones voluntariamente en el chat.</p>
+      <p><strong>Servicios de terceros:</strong> MAYA utiliza Stripe (pagos) y Anthropic (respuestas de IA). Cada servicio opera bajo su propia política de privacidad.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🌍 Cumplimiento Legal</div>
+      <p><strong>México — LFPDPPP:</strong> MAYA cumple con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Tienes derecho a ejercer los derechos ARCO (Acceso, Rectificación, Cancelación y Oposición) contactándonos en <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+      <p><strong>Unión Europea — RGPD (GDPR):</strong> Si te encuentras en la UE, tienes derecho a acceder, rectificar, suprimir, limitar y portar tus datos personales, y a retirar tu consentimiento en cualquier momento. Para ejercer estos derechos, contáctanos en <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+      <p><strong>California — CCPA:</strong> Los residentes de California tienen derecho a saber qué información personal se recopila, a eliminarla y a oponerse a su venta. MAYA no vende datos personales. Para ejercer tus derechos, contáctanos en <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚖️ Limitación de Responsabilidad</div>
+      <p>MAYA y sus operadores no serán responsables de ningún daño directo, indirecto, incidental o consecuente que surja del uso o la dependencia de la información proporcionada por este servicio.</p>
+      <p>Esto incluye, entre otros: precios incorrectos, negocios cerrados, horarios modificados, lesiones personales, daños a la propiedad o pérdidas económicas derivadas de seguir las sugerencias de MAYA.</p>
+      <p>El uso de MAYA implica la aceptación de estos términos.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">✉️ Contacto</div>
+      <p>Para preguntas sobre estos términos, solicitudes de privacidad o soporte técnico:</p>
+      <p><strong>Sitio web:</strong> <a href="https://holamaya.lat">holamaya.lat</a></p>
+      <p>Nuestro objetivo es responder en un plazo de 5 días hábiles.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════ FRANÇAIS ══════════════════ -->
+  <div class="lang-section" id="lang-fr">
+    <div class="page-title">MAYA</div>
+    <div class="page-subtitle">Conditions d'Utilisation et Politique de Confidentialité</div>
+    <div class="updated">Dernière mise à jour : 2 mai 2026 · holamaya.lat</div>
+
+    <div class="section">
+      <div class="section-title">🌴 À propos de MAYA</div>
+      <p>MAYA est un chatbot informatif alimenté par intelligence artificielle, conçu pour aider les voyageurs à explorer la Riviera Maya, au Mexique. Le service couvre des sujets tels que les plages, les restaurants, la sécurité, les transports, les cénotes, les conseils locaux et bien plus.</p>
+      <p>MAYA est exploité par <strong>holamaya.lat</strong> et est disponible sur <a href="https://maya-app-one.vercel.app">maya-app-one.vercel.app</a>.</p>
+      <div class="disclaimer-box">MAYA est uniquement un guide informatif — ce n'est pas une agence de voyages, une plateforme de réservation ni un conseiller professionnel.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚠️ Avertissement sur l'Information</div>
+      <p>Tout le contenu fourni par MAYA — y compris les prix, les horaires, les heures d'ouverture et les recommandations — est <strong>fourni à titre indicatif uniquement</strong>. Ces informations peuvent être obsolètes, incomplètes ou susceptibles de changer sans préavis.</p>
+      <div class="warning-box">
+        ⚠️ Vérifiez toujours les prix, les horaires et la disponibilité directement auprès de l'établissement avant votre visite. MAYA n'est pas responsable des écarts entre les informations fournies et les conditions réelles.
+      </div>
+      <p style="margin-top:12px">MAYA ne fournit <strong>pas</strong> :</p>
+      <ul>
+        <li>De conseils médicaux ou de recommandations de santé</li>
+        <li>De conseils juridiques de quelque nature que ce soit</li>
+        <li>De conseils financiers ou d'investissement</li>
+        <li>De services d'urgence ou d'assistance en cas de crise</li>
+      </ul>
+      <p>En cas d'urgence, contactez les autorités locales : <strong>911 (Mexique)</strong>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">💳 Paiements et Abonnements</div>
+      <p>L'accès complet au service MAYA nécessite un abonnement payant traité de manière sécurisée via <strong>Stripe</strong>.</p>
+      <ul>
+        <li><strong>Accès 30 jours — 7 USD :</strong> Paiement unique pour 30 jours d'accès illimité.</li>
+        <li><strong>Accès Annuel — 19 USD :</strong> Paiement unique pour 365 jours d'accès illimité.</li>
+      </ul>
+      <p>Tous les paiements sont traités en dollars américains (USD). Les prix peuvent être modifiés avec un préavis.</p>
+      <p><strong>Politique de remboursement :</strong> En raison de la nature numérique et immédiate du service, toutes les ventes sont définitives. Si vous rencontrez un problème technique empêchant l'accès, contactez-nous sur <a href="https://holamaya.lat">holamaya.lat</a> dans les 48 heures suivant l'achat.</p>
+      <p><strong>Pas de renouvellement automatique :</strong> Les plans actuels sont des paiements uniques et ne se renouvellent pas automatiquement.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🔒 Politique de Confidentialité</div>
+      <p><strong>Ce que nous collectons :</strong></p>
+      <ul>
+        <li><strong>Données de paiement :</strong> Entièrement traitées par Stripe. MAYA ne stocke pas les numéros de carte ni les identifiants financiers.</li>
+        <li><strong>Données d'utilisation :</strong> Données anonymisées sur l'utilisation des fonctionnalités (ex. : quels sujets sont les plus consultés) pour améliorer le service.</li>
+        <li><strong>Conversations :</strong> Les messages du chat sont envoyés à l'API d'Anthropic pour générer des réponses. MAYA ne les conserve pas au-delà de la session active.</li>
+        <li><strong>Stockage local :</strong> Un compteur d'utilisation est enregistré dans le stockage local de votre navigateur pour gérer la limite de questions gratuites. Aucune donnée personnelle n'est incluse.</li>
+      </ul>
+      <p><strong>Ce que nous ne collectons pas :</strong> Nous ne collectons pas votre nom, e-mail, téléphone ni localisation, sauf si vous les fournissez volontairement dans le chat.</p>
+      <p><strong>Services tiers :</strong> MAYA utilise Stripe (paiements) et Anthropic (réponses IA). Chaque service opère selon sa propre politique de confidentialité.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">🌍 Conformité Légale</div>
+      <p><strong>Mexique — LFPDPPP :</strong> MAYA respecte la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Vous pouvez exercer vos droits ARCO (Accès, Rectification, Annulation, Opposition) en nous contactant sur <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+      <p><strong>Union Européenne — RGPD :</strong> Si vous êtes situé dans l'UE, vous disposez du droit d'accéder à vos données personnelles, de les rectifier, de les effacer, d'en limiter le traitement, de les transférer, et de retirer votre consentement à tout moment. Pour exercer ces droits, contactez-nous sur <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+      <p><strong>Californie — CCPA :</strong> Les résidents californiens ont le droit de savoir quelles informations personnelles sont collectées, de les supprimer et de s'opposer à leur vente. MAYA ne vend pas de données personnelles. Pour exercer vos droits, contactez-nous sur <a href="https://holamaya.lat">holamaya.lat</a>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">⚖️ Limitation de Responsabilité</div>
+      <p>MAYA et ses opérateurs ne sauraient être tenus responsables de tout dommage direct, indirect, accessoire ou consécutif résultant de l'utilisation ou de la dépendance aux informations fournies par ce service.</p>
+      <p>Cela inclut notamment : des prix incorrects, des établissements fermés, des horaires modifiés, des blessures corporelles, des dommages matériels ou des pertes financières résultant du suivi des suggestions de MAYA.</p>
+      <p>L'utilisation de MAYA implique l'acceptation des présentes conditions.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">✉️ Contact</div>
+      <p>Pour toute question sur ces conditions, demande de confidentialité ou assistance technique :</p>
+      <p><strong>Site web :</strong> <a href="https://holamaya.lat">holamaya.lat</a></p>
+      <p>Nous visons à répondre dans un délai de 5 jours ouvrables.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  MAYA · Riviera Maya Insider Guide · 2026 · <a href="/">Back to app</a>
+</div>
+
+<script>
+  function setLang(lang) {
+    ['en','es','fr'].forEach(l => {
+      document.getElementById('lang-' + l).classList.toggle('visible', l === lang);
+      document.getElementById('btn-' + l).classList.toggle('active', l === lang);
+    });
+    document.getElementById('back-link').textContent =
+      lang === 'es' ? '← Volver a MAYA' : lang === 'fr' ? '← Retour à MAYA' : '← Back to MAYA';
+  }
+
+  // Auto-detect browser language on load
+  const browserLang = (navigator.language || 'en').toLowerCase().slice(0, 2);
+  if (['es','fr'].includes(browserLang)) setLang(browserLang);
+</script>
+</body>
+</html>

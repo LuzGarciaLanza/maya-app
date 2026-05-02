@@ -785,7 +785,13 @@ export default function App() {
           ))}
         </div>
       </div>
-      <p style={{ textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.12)", fontFamily: "Arial", marginTop: 24 }}>MAYA • Riviera Maya Insider Guide • 2026</p>
+      <p style={{ textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.12)", fontFamily: "Arial", marginTop: 24 }}>
+        MAYA • Riviera Maya Insider Guide • 2026
+        {" · "}
+        <a href="/terms.html" style={{ color: "rgba(255,255,255,0.2)", textDecoration: "none" }}>
+          {{ en: "Terms & Privacy", es: "Términos y Privacidad", fr: "CGU & Confidentialité" }[lang]}
+        </a>
+      </p>
       <style>{`* { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
     </div>
   );
