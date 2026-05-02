@@ -1,18 +1,30 @@
 import { useState, useRef, useEffect } from "react";
 
 function renderMarkdown(text) {
-  return text.split("\n").map((line, li) => {
-    const segments = [];
-    const bold = /\*\*(.+?)\*\*/g;
-    let last = 0, m, key = 0;
-    while ((m = bold.exec(line)) !== null) {
-      if (m.index > last) segments.push(line.slice(last, m.index));
-      segments.push(<strong key={key++}>{m[1]}</strong>);
-      last = m.index + m[0].length;
+  const lines = text.split("\n");
+  return lines.map((line, li) => {
+    const br = li < lines.length - 1 ? <br /> : null;
+
+    const heading = line.match(/^#{1,3} (.+)/);
+    if (heading) {
+      return <span key={li} style={{ fontWeight: 700, fontSize: 13 }}>{inlineBold(heading[1])}{br}</span>;
     }
-    if (last < line.length) segments.push(line.slice(last));
-    return <span key={li}>{segments}{li < text.split("\n").length - 1 && <br />}</span>;
+
+    return <span key={li}>{inlineBold(line)}{br}</span>;
   });
+}
+
+function inlineBold(line) {
+  const parts = [];
+  const re = /\*\*(.+?)\*\*/g;
+  let last = 0, m, key = 0;
+  while ((m = re.exec(line)) !== null) {
+    if (m.index > last) parts.push(line.slice(last, m.index));
+    parts.push(<strong key={key++}>{m[1]}</strong>);
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) parts.push(line.slice(last));
+  return parts;
 }
 
 const FREE_LIMIT = 3;
