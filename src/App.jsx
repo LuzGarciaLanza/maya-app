@@ -1,5 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 
+function renderMarkdown(text) {
+  return text.split("\n").map((line, li) => {
+    const segments = [];
+    const bold = /\*\*(.+?)\*\*/g;
+    let last = 0, m, key = 0;
+    while ((m = bold.exec(line)) !== null) {
+      if (m.index > last) segments.push(line.slice(last, m.index));
+      segments.push(<strong key={key++}>{m[1]}</strong>);
+      last = m.index + m[0].length;
+    }
+    if (last < line.length) segments.push(line.slice(last));
+    return <span key={li}>{segments}{li < text.split("\n").length - 1 && <br />}</span>;
+  });
+}
+
 const FREE_LIMIT = 3;
 
 // ─── SYSTEM PROMPT (abbreviated — same deep knowledge as V5) ───────────────
@@ -814,7 +829,7 @@ export default function App() {
               {m.preview && <div style={{ borderRadius: 12, overflow: "hidden", maxWidth: 200, border: "2px solid rgba(0,172,193,0.4)" }}><img src={m.preview} alt="" style={{ width: "100%", display: "block" }} /></div>}
               {(m.content || m.role === "assistant") && (
                 <div style={{ padding: "9px 13px", borderRadius: m.role === "user" ? "16px 16px 3px 16px" : "16px 16px 16px 3px", background: m.role === "user" ? "linear-gradient(135deg, #00897B, #00ACC1)" : "white", color: m.role === "user" ? "white" : "#1a2332", fontSize: 13, lineHeight: 1.65, boxShadow: "0 1px 5px rgba(0,0,0,0.07)", whiteSpace: "pre-wrap" }}>
-                  {m.content}
+                  {m.role === "assistant" ? renderMarkdown(m.content) : m.content}
                 </div>
               )}
               {m.sargassumLink && (
