@@ -785,11 +785,11 @@ export default function App() {
           ))}
         </div>
       </div>
-      <p style={{ textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.12)", fontFamily: "Arial", marginTop: 24 }}>
+      <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "Arial", marginTop: 24, lineHeight: 2 }}>
         MAYA • Riviera Maya Insider Guide • 2026
-        {" · "}
-        <a href="/terms.html" style={{ color: "rgba(255,255,255,0.2)", textDecoration: "none" }}>
-          {{ en: "Terms & Privacy", es: "Términos y Privacidad", fr: "CGU & Confidentialité" }[lang]}
+        <br />
+        <a href="/terms.html" style={{ color: "#80DEEA", textDecoration: "none", fontSize: 10, opacity: 0.6 }}>
+          {{ en: "Terms of Use & Privacy Policy", es: "Términos de Uso y Política de Privacidad", fr: "CGU & Politique de Confidentialité" }[lang]}
         </a>
       </p>
       <style>{`* { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
@@ -923,9 +923,16 @@ export default function App() {
                 {{ en: "⭐ Annual Access — $19 USD", es: "⭐ Acceso Anual — $19 USD", fr: "⭐ Accès Annuel — 19 USD" }[lang]}
               </button>
             </div>
-            <button onClick={() => setShowPaywall(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer", fontFamily: "Arial" }}>
+            <button onClick={() => setShowPaywall(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 12, cursor: "pointer", fontFamily: "Arial", marginBottom: 10 }}>
               {{ en: "Close", es: "Cerrar", fr: "Fermer" }[lang]}
             </button>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", fontFamily: "Arial", lineHeight: 1.6 }}>
+              {{ en: "By subscribing you agree to our", es: "Al suscribirte aceptas nuestros", fr: "En vous abonnant vous acceptez nos" }[lang]}
+              {" "}
+              <a href="/terms.html" target="_blank" rel="noopener noreferrer" style={{ color: "#80DEEA", opacity: 0.7 }}>
+                {{ en: "Terms & Privacy Policy", es: "Términos y Política de Privacidad", fr: "CGU & Confidentialité" }[lang]}
+              </a>
+            </div>
           </div>
         </div>
       )}
