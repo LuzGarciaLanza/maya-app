@@ -510,7 +510,7 @@ export default function App() {
         }
         return { role: m.role, content: m.content };
       });
-      const res = await fetch("/.netlify/functions/claude", {
+      const res = await fetch("/./api/claude/functions/claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ model: "claude-sonnet-4-5", max_tokens: 1024, system: SYSTEM_PROMPT, messages: apiMessages }),
