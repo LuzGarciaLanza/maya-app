@@ -487,6 +487,16 @@ function openWhatsApp(phone, message) {
   window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
 }
 
+async function trackDealClick(partnerName, businessType, action, lang) {
+  try {
+    await fetch("/api/track-deal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ partner_name: partnerName, business_type: businessType, action, lang }),
+    });
+  } catch {}
+}
+
 export default function App() {
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("landing"); // landing | chat | deals
@@ -632,7 +642,11 @@ export default function App() {
         {DEALS.map(deal => (
           <div key={deal.id} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, marginBottom: 12, overflow: "hidden" }}>
             {/* Deal header */}
-            <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => setExpandedDeal(expandedDeal === deal.id ? null : deal.id)}>
+            <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => {
+              const opening = expandedDeal !== deal.id;
+              setExpandedDeal(opening ? deal.id : null);
+              if (opening) trackDealClick(deal.business, deal.category, "expand", lang);
+            }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -683,7 +697,10 @@ export default function App() {
 
                 {/* WhatsApp CTA */}
                 <button
-                  onClick={() => openWhatsApp(deal.whatsapp, deal.preMessage[lang])}
+                  onClick={() => {
+                    trackDealClick(deal.business, deal.category, "whatsapp", lang);
+                    openWhatsApp(deal.whatsapp, deal.preMessage[lang]);
+                  }}
                   style={{ width: "100%", background: "linear-gradient(135deg, #25D366, #128C7E)", border: "none", color: "white", padding: "13px 16px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   <span style={{ fontSize: 18 }}>💬</span>
                   {tText.bookWhatsApp}
