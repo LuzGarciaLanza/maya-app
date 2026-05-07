@@ -616,6 +616,19 @@ export default function App() {
   async function sendMessage(text) {
     const txt = text || input.trim();
     if ((!txt && !imageBase64) || loading) return;
+
+    // Secret owner password — bypass paywall
+    if (txt.trim().toUpperCase() === "MAYA2026") {
+      localStorage.setItem('maya_access', 'true');
+      setHasAccess(true);
+      setInput("");
+      setMessages(prev => [...prev,
+        { role: "user", content: txt },
+        { role: "assistant", content: "🌴 ¡Acceso ilimitado activado! Ya puedes hacer todas las preguntas que quieras." }
+      ]);
+      return;
+    }
+
     if (!hasAccess && freeCount >= FREE_LIMIT) { setShowPaywall(true); return; }
     setInput("");
     const newMsg = imageBase64
