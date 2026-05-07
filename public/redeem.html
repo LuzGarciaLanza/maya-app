@@ -171,7 +171,7 @@
     btn.disabled = true;
     btn.textContent = 'Checking...';
     result.className = 'result';
-    result.style.display = 'none';
+    result.style.display = '';
 
     try {
       const res = await fetch('/api/redeem-code', {
@@ -192,7 +192,7 @@
       } else if (res.status === 404) {
         showResult('error', '❌', 'Code not found', `The code <strong>${code}</strong> does not exist. Make sure the customer is showing you their MAYA app code.`);
       } else if (res.status === 409) {
-        const date = new Date(data.redeemed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const date = data.redeemed_at ? new Date(data.redeemed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'earlier';
         showResult('warning', '⚠️', 'Already redeemed', `This code was already used on <strong>${date}</strong>. Each code can only be redeemed once.`);
       } else {
         showResult('error', '❌', 'Error', 'Something went wrong. Please try again.');
