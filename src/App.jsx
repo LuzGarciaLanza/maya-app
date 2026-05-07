@@ -657,7 +657,10 @@ export default function App() {
 
       {/* Deals list */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px" }}>
-        {DEALS.map(deal => (
+        {DEALS.map(deal => {
+          const uniqueCode = dealCodes[deal.id] || deal.code;
+          const uniqueMessage = deal.preMessage[lang].replace(deal.code, uniqueCode);
+          return (
           <div key={deal.id} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, marginBottom: 12, overflow: "hidden" }}>
             {/* Deal header */}
             <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => {
@@ -693,10 +696,6 @@ export default function App() {
 
             {/* Expanded content */}
             {expandedDeal === deal.id && (
-              {(() => {
-                const uniqueCode = dealCodes[deal.id] || deal.code;
-                const uniqueMessage = deal.preMessage[lang].replace(deal.code, uniqueCode);
-                return (
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "14px 16px 16px", background: "rgba(0,0,0,0.2)" }}>
                 {/* Code */}
                 <div style={{ marginBottom: 14 }}>
@@ -728,11 +727,10 @@ export default function App() {
                   {tText.bookWhatsApp}
                 </button>
               </div>
-                );
-              })()}
             )}
           </div>
-        ))}
+          );
+        })}
 
         {/* Coming soon */}
         <div style={{ background: "rgba(255,255,255,0.02)", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 16, padding: "20px 16px", textAlign: "center", marginBottom: 12 }}>
