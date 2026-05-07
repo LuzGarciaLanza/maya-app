@@ -208,6 +208,7 @@
   function showResult(type, icon, title, message) {
     const result = document.getElementById('result');
     result.className = `result ${type}`;
+    result.style.display = 'block';
     result.innerHTML = `<div class="result-icon">${icon}</div><div class="result-title">${title}</div><div>${message}</div>`;
   }
 </script>
