@@ -13,7 +13,6 @@ module.exports = async function handler(req, res) {
   };
 
   try {
-    // 1. Check if code exists
     const checkRes = await fetch(
       `${supabaseUrl}/rest/v1/deal_codes?code=eq.${encodeURIComponent(code)}&select=*`,
       { headers }
@@ -26,7 +25,6 @@ module.exports = async function handler(req, res) {
 
     const row = rows[0];
 
-    // 2. Already redeemed?
     if (row.redeemed_at) {
       return res.status(409).json({
         error: 'already_redeemed',
@@ -35,8 +33,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 3. Mark as redeemed — PATCH by id
-    const patchRes = await fetch(
+    await fetch(
       `${supabaseUrl}/rest/v1/deal_codes?id=eq.${row.id}`,
       {
         method: 'PATCH',
@@ -45,15 +42,11 @@ module.exports = async function handler(req, res) {
       }
     );
 
-    const patchStatus = patchRes.status;
-    const patchBody = await patchRes.text();
-
-    // Return debug info so we can diagnose
     return res.status(200).json({
       success: true,
       partner_name: row.partner_name,
       business_type: row.business_type,
-      _debug: { patchStatus, patchBody }
+      generated_at: row.generated_at
     });
 
   } catch (error) {
