@@ -8,7 +8,8 @@ module.exports = async function handler(req, res) {
   const supabaseKey = process.env.SUPABASE_ANON_KEY;
   const headers = {
     'apikey': supabaseKey,
-    'Authorization': `Bearer ${supabaseKey}`
+    'Authorization': `Bearer ${supabaseKey}`,
+    'Content-Type': 'application/json'
   };
 
   try {
@@ -19,7 +20,7 @@ module.exports = async function handler(req, res) {
     );
     const rows = await checkRes.json();
 
-    if (!rows.length) {
+    if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(404).json({ error: 'not_found' });
     }
 
@@ -34,15 +35,30 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 3. Mark as redeemed
-    await fetch(
+    // 3. Mark as redeemed using UPDATE via RPC (more reliable than PATCH)
+    const updateRes = await fetch(
       `${supabaseUrl}/rest/v1/deal_codes?code=eq.${encodeURIComponent(code)}`,
       {
         method: 'PATCH',
-        headers: { ...headers, 'Content-Type': 'application/json' },
+        headers: { ...headers, 'Prefer': 'return=representation' },
         body: JSON.stringify({ redeemed_at: new Date().toISOString() })
       }
     );
+
+    const updated = await updateRes.json();
+
+    // 4. Verify update actually worked
+    if (!updateRes.ok || !Array.isArray(updated) || !updated[0]?.redeemed_at) {
+      // Fallback: try again without Prefer header
+      await fetch(
+        `${supabaseUrl}/rest/v1/deal_codes?id=eq.${row.id}`,
+        {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ redeemed_at: new Date().toISOString() })
+        }
+      );
+    }
 
     return res.status(200).json({
       success: true,
