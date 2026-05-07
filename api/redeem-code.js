@@ -35,9 +35,9 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // 3. Mark as redeemed using UPDATE via RPC (more reliable than PATCH)
-    const updateRes = await fetch(
-      `${supabaseUrl}/rest/v1/deal_codes?code=eq.${encodeURIComponent(code)}`,
+    // 3. Mark as redeemed — PATCH by id
+    const patchRes = await fetch(
+      `${supabaseUrl}/rest/v1/deal_codes?id=eq.${row.id}`,
       {
         method: 'PATCH',
         headers: { ...headers, 'Prefer': 'return=representation' },
@@ -45,27 +45,17 @@ module.exports = async function handler(req, res) {
       }
     );
 
-    const updated = await updateRes.json();
+    const patchStatus = patchRes.status;
+    const patchBody = await patchRes.text();
 
-    // 4. Verify update actually worked
-    if (!updateRes.ok || !Array.isArray(updated) || !updated[0]?.redeemed_at) {
-      // Fallback: try again without Prefer header
-      await fetch(
-        `${supabaseUrl}/rest/v1/deal_codes?id=eq.${row.id}`,
-        {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify({ redeemed_at: new Date().toISOString() })
-        }
-      );
-    }
-
+    // Return debug info so we can diagnose
     return res.status(200).json({
       success: true,
       partner_name: row.partner_name,
       business_type: row.business_type,
-      generated_at: row.generated_at
+      _debug: { patchStatus, patchBody }
     });
+
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
