@@ -501,6 +501,7 @@ export default function App() {
   const [lang, setLang] = useState("en");
   const [screen, setScreen] = useState("landing"); // landing | chat | deals
   const [messages, setMessages] = useState([]);
+  const [dealCodes, setDealCodes] = useState(() => JSON.parse(localStorage.getItem('maya_deal_codes') || '{}'));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -595,6 +596,23 @@ export default function App() {
     e.target.value = "";
   }
 
+  async function getOrCreateCode(deal) {
+    const stored = JSON.parse(localStorage.getItem('maya_deal_codes') || '{}');
+    if (stored[deal.id]) { setDealCodes(stored); return; }
+    const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const newCode = `${deal.code}-${suffix}`;
+    stored[deal.id] = newCode;
+    localStorage.setItem('maya_deal_codes', JSON.stringify(stored));
+    setDealCodes({ ...stored });
+    try {
+      await fetch('/api/generate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: newCode, partner_name: deal.business, business_type: deal.category, deal_id: deal.id, lang })
+      });
+    } catch (e) { /* silent fail — code still works locally */ }
+  }
+
   async function sendMessage(text) {
     const txt = text || input.trim();
     if ((!txt && !imageBase64) || loading) return;
@@ -645,7 +663,7 @@ export default function App() {
             <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => {
               const opening = expandedDeal !== deal.id;
               setExpandedDeal(opening ? deal.id : null);
-              if (opening) trackDealClick(deal.business, deal.category, "expand", lang);
+              if (opening) { trackDealClick(deal.business, deal.category, "expand", lang); getOrCreateCode(deal); }
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                 <div style={{ flex: 1 }}>
@@ -675,14 +693,18 @@ export default function App() {
 
             {/* Expanded content */}
             {expandedDeal === deal.id && (
+              {(() => {
+                const uniqueCode = dealCodes[deal.id] || deal.code;
+                const uniqueMessage = deal.preMessage[lang].replace(deal.code, uniqueCode);
+                return (
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "14px 16px 16px", background: "rgba(0,0,0,0.2)" }}>
                 {/* Code */}
                 <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "Arial", marginBottom: 6 }}>{tText.yourCode}</div>
                   <div style={{ background: "rgba(255,255,255,0.07)", border: "2px dashed rgba(255,255,255,0.2)", borderRadius: 10, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: "monospace", fontSize: 18, fontWeight: "bold", color: "#FFD54F", letterSpacing: 2 }}>{deal.code}</span>
+                    <span style={{ fontFamily: "monospace", fontSize: 18, fontWeight: "bold", color: "#FFD54F", letterSpacing: 2 }}>{uniqueCode}</span>
                     <button onClick={() => {
-                      navigator.clipboard?.writeText(deal.code);
+                      navigator.clipboard?.writeText(uniqueCode);
                       alert(lang === "es" ? "¡Código copiado!" : lang === "fr" ? "Code copié!" : "Code copied!");
                     }} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "white", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "Arial" }}>
                       {lang === "es" ? "Copiar" : lang === "fr" ? "Copier" : "Copy"}
@@ -699,13 +721,15 @@ export default function App() {
                 <button
                   onClick={() => {
                     trackDealClick(deal.business, deal.category, "whatsapp", lang);
-                    openWhatsApp(deal.whatsapp, deal.preMessage[lang]);
+                    openWhatsApp(deal.whatsapp, uniqueMessage);
                   }}
                   style={{ width: "100%", background: "linear-gradient(135deg, #25D366, #128C7E)", border: "none", color: "white", padding: "13px 16px", borderRadius: 12, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   <span style={{ fontSize: 18 }}>💬</span>
                   {tText.bookWhatsApp}
                 </button>
               </div>
+                );
+              })()}
             )}
           </div>
         ))}
