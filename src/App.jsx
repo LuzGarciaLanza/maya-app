@@ -507,6 +507,7 @@ export default function App() {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageBase64, setImageBase64] = useState(null);
   const [expandedDeal, setExpandedDeal] = useState(null);
+  const [translateMode, setTranslateMode] = useState(false);
   const [freeCount, setFreeCount] = useState(() => parseInt(localStorage.getItem('maya_free') || '0'));
   const [hasAccess, setHasAccess] = useState(() => localStorage.getItem('maya_access') === 'true');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -566,7 +567,7 @@ export default function App() {
   }
 
   function startWithCategory(cat) {
-    if (cat.id === "translate") { setScreen("chat"); setTimeout(() => fileRef.current?.click(), 300); return; }
+    if (cat.id === "translate") { setTranslateMode(true); setMessages([]); setScreen("chat"); return; }
     if (cat.id === "deals") { setScreen("deals"); return; }
     if (!hasAccess && freeCount >= FREE_LIMIT) { setShowPaywall(true); return; }
     const q = firstQ[cat.id]?.[lang];
@@ -874,7 +875,7 @@ export default function App() {
       <div style={{ display: "flex", gap: 5, padding: "7px 8px", overflowX: "auto", background: "white", borderBottom: "1px solid #e8ecf0", scrollbarWidth: "none" }}>
         {categories.map(cat => (
           <button key={cat.id} onClick={() => {
-            if (cat.id === "translate") { fileRef.current?.click(); return; }
+            if (cat.id === "translate") { setTranslateMode(true); return; }
             if (cat.id === "deals") { setScreen("deals"); return; }
             if (!hasAccess && freeCount >= FREE_LIMIT) { setShowPaywall(true); return; }
             const q = firstQ[cat.id]?.[lang];
@@ -933,6 +934,28 @@ export default function App() {
         <div ref={bottomRef} />
       </div>
 
+      {/* Translate mode — big tap button */}
+      {translateMode && (
+        <div style={{ margin: "0 12px 10px", borderRadius: 16, background: "linear-gradient(135deg, #004D40, #00695C)", border: "2px dashed rgba(0,172,193,0.5)", padding: "20px 16px", textAlign: "center" }}>
+          <div style={{ fontSize: 36, marginBottom: 6 }}>📷</div>
+          <div style={{ color: "white", fontWeight: "bold", fontSize: 15, marginBottom: 4 }}>
+            {{ en: "Tap to take or choose a photo", es: "Toca para tomar o elegir una foto", fr: "Appuie pour prendre ou choisir une photo" }[lang]}
+          </div>
+          <div style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, marginBottom: 14 }}>
+            {{ en: "Signs, menus, anything — Maya will translate it", es: "Carteles, menús, lo que sea — Maya lo traduce", fr: "Panneaux, menus, n'importe quoi — Maya traduit" }[lang]}
+          </div>
+          <button onClick={() => fileRef.current?.click()} style={{ background: "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: 12, color: "white", fontWeight: "bold", fontSize: 15, padding: "12px 28px", cursor: "pointer" }}>
+            {{ en: "Open camera / gallery", es: "Abrir cámara / galería", fr: "Ouvrir caméra / galerie" }[lang]}
+          </button>
+          <div style={{ marginTop: 10 }}>
+            <button onClick={() => setTranslateMode(false)} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", fontSize: 11, cursor: "pointer" }}>
+              {{ en: "Cancel", es: "Cancelar", fr: "Annuler" }[lang]}
+            </button>
+          </div>
+        </div>
+      )}
+
+
       {imagePreview && (
         <div style={{ background: "white", borderTop: "1px solid #e0f7fa", padding: "8px 12px", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ position: "relative", flexShrink: 0 }}>
@@ -947,7 +970,7 @@ export default function App() {
 
       <div style={{ padding: "9px 10px", background: "white", borderTop: imagePreview ? "none" : "1px solid #e8ecf0", display: "flex", gap: 7, alignItems: "center" }}>
         <button onClick={() => fileRef.current?.click()} style={{ background: "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: "50%", width: 42, height: 42, cursor: "pointer", color: "white", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>📷</button>
-        <input type="file" ref={fileRef} onChange={handleImageSelect} accept="image/*" capture="environment" style={{ display: "none" }} />
+        <input type="file" ref={fileRef} onChange={(e) => { handleImageSelect(e); setTranslateMode(false); }} accept="image/*" style={{ display: "none" }} />
         <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendMessage()}
           placeholder={imageBase64 ? { en: "Add a note (optional)...", es: "Agrega una nota...", fr: "Ajoute une note..." }[lang] : tText.placeholder}
           style={{ flex: 1, padding: "9px 14px", borderRadius: 22, border: "1.5px solid #b2ebf2", fontSize: 13, outline: "none", fontFamily: "Arial", background: "#f8fffe" }} />
