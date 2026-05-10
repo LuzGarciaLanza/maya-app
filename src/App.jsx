@@ -513,8 +513,12 @@ export default function App() {
   const [voiceListening, setVoiceListening] = useState(false);
   const [voiceResult, setVoiceResult] = useState(null); // { original, translated }
   const [voiceSpeaking, setVoiceSpeaking] = useState(false);
+  const [voiceTranslating, setVoiceTranslating] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState(""); // debug status
   const [voiceDirection, setVoiceDirection] = useState("toEs"); // toEs | fromEs
   const recognitionRef = useRef(null);
+  const voiceDirectionRef = useRef("toEs");
+  const langRef = useRef("en");
   const [freeCount, setFreeCount] = useState(() => parseInt(localStorage.getItem('maya_free') || '0'));
   const [hasAccess, setHasAccess] = useState(() => localStorage.getItem('maya_access') === 'true');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -573,6 +577,10 @@ export default function App() {
     }
   }
 
+  // Keep refs in sync so recognition callbacks avoid stale closures
+  useEffect(() => { voiceDirectionRef.current = voiceDirection; }, [voiceDirection]);
+  useEffect(() => { langRef.current = lang; }, [lang]);
+
   function speakText(text, speakLang) {
     if (!window.speechSynthesis) return;
     window.speechSynthesis.cancel();
@@ -585,10 +593,14 @@ export default function App() {
   }
 
   async function translateVoice(text) {
-    const fromLang = voiceDirection === "toEs" ? lang : "es";
-    const toLang = voiceDirection === "toEs" ? "es" : lang;
+    const dir = voiceDirectionRef.current;
+    const l = langRef.current;
+    const fromLang = dir === "toEs" ? l : "es";
+    const toLang = dir === "toEs" ? "es" : l;
     const fromName = fromLang === "es" ? "Spanish" : fromLang === "fr" ? "French" : "English";
     const toName = toLang === "es" ? "Spanish" : toLang === "fr" ? "French" : "English";
+    setVoiceTranslating(true);
+    setVoiceStatus("Translating…");
     try {
       const res = await fetch("/api/claude", {
         method: "POST",
@@ -601,11 +613,15 @@ export default function App() {
         })
       });
       const data = await res.json();
-      const translated = data.content?.[0]?.text || "";
+      const translated = data.content?.[0]?.text || "❌ Empty response";
       setVoiceResult({ original: text, translated });
+      setVoiceStatus("");
       speakText(translated, toLang);
-    } catch {
-      setVoiceResult({ original: text, translated: "❌ Error al traducir" });
+    } catch (e) {
+      setVoiceResult({ original: text, translated: `❌ Error: ${e.message}` });
+      setVoiceStatus("");
+    } finally {
+      setVoiceTranslating(false);
     }
   }
 
@@ -621,23 +637,31 @@ export default function App() {
       return;
     }
     setVoiceResult(null);
+    setVoiceStatus("Starting…");
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
-    recognition.lang = voiceDirection === "toEs"
-      ? (lang === "fr" ? "fr-FR" : "en-US")
-      : "es-MX";
+    const dir = voiceDirectionRef.current;
+    const l = langRef.current;
+    recognition.lang = dir === "toEs" ? (l === "fr" ? "fr-FR" : "en-US") : "es-MX";
     recognition.interimResults = false;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
-    recognition.onstart = () => setVoiceListening(true);
+    recognition.onstart = () => { setVoiceListening(true); setVoiceStatus("Listening…"); };
     recognition.onresult = (e) => {
       const text = e.results[0][0].transcript;
       setVoiceListening(false);
+      setVoiceStatus(`Heard: "${text}"`);
       translateVoice(text);
+    };
+    recognition.onnomatch = () => {
+      setVoiceListening(false);
+      setVoiceStatus("");
+      setVoiceResult({ original: "", translated: "❌ No se entendió. Hablá más cerca del micrófono." });
     };
     recognition.onerror = (e) => {
       setVoiceListening(false);
-      setVoiceResult({ original: "", translated: `❌ Error: ${e.error}. Intentá de nuevo.` });
+      setVoiceStatus("");
+      setVoiceResult({ original: "", translated: `❌ Error micrófono: ${e.error}. Verificá permisos en Configuración.` });
     };
     recognition.onend = () => setVoiceListening(false);
     recognition.start();
@@ -1059,10 +1083,10 @@ export default function App() {
               : { en: "Tap 🎤 to speak", es: "Toca 🎤 para hablar", fr: "Appuie 🎤 pour parler" }[lang]}
           </div>
 
-          {/* Translating spinner */}
-          {!voiceListening && !voiceResult && loading && (
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "Arial", marginBottom: 10 }}>
-              ⏳ { { en: "Translating…", es: "Traduciendo…", fr: "Traduction…" }[lang] }
+          {/* Status / translating indicator */}
+          {(voiceStatus || voiceTranslating) && (
+            <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontFamily: "Arial", marginBottom: 10 }}>
+              ⏳ {voiceStatus || { en: "Translating…", es: "Traduciendo…", fr: "Traduction…" }[lang]}
             </div>
           )}
 
