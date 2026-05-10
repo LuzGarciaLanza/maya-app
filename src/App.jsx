@@ -616,6 +616,7 @@ export default function App() {
       const translated = data.content?.[0]?.text || "❌ Empty response";
       setVoiceResult({ original: text, translated, toLang });
       setVoiceStatus("");
+      speakText(translated, toLang);
     } catch (e) {
       setVoiceResult({ original: text, translated: `❌ Error: ${e.message}` });
       setVoiceStatus("");
@@ -639,6 +640,14 @@ export default function App() {
     }
     setVoiceResult(null);
     setVoiceStatus("");
+
+    // Unlock iOS audio context during this user gesture so auto-play works later
+    if (window.speechSynthesis) {
+      const unlock = new SpeechSynthesisUtterance(' ');
+      unlock.volume = 0;
+      window.speechSynthesis.speak(unlock);
+    }
+
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
     const dir = voiceDirectionRef.current;
