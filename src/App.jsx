@@ -1086,15 +1086,33 @@ export default function App() {
             </button>
           </div>
 
-          {/* Mic button */}
+          {/* Single smart button: mic → listening → translating → play */}
           <button
-            onClick={toggleListening}
-            style={{ width: 80, height: 80, borderRadius: "50%", border: "none", background: voiceListening ? "linear-gradient(135deg, #e53935, #c62828)" : "linear-gradient(135deg, #3949AB, #5C6BC0)", cursor: "pointer", fontSize: 32, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", boxShadow: voiceListening ? "0 0 0 14px rgba(229,57,53,0.3)" : "0 4px 15px rgba(0,0,0,0.3)", transition: "all 0.2s" }}>
-            {voiceListening ? "🎤" : "🎤"}
+            onClick={voiceTranslating ? null : voiceResult ? () => speakText(voiceResult.translated, voiceResult.toLang || (voiceDirection === "toEs" ? "es" : lang)) : toggleListening}
+            style={{
+              width: 90, height: 90, borderRadius: "50%", border: "none", cursor: voiceTranslating ? "default" : "pointer",
+              background: voiceTranslating ? "#546E7A"
+                : voiceResult ? "linear-gradient(135deg, #00897B, #00ACC1)"
+                : voiceListening ? "linear-gradient(135deg, #e53935, #c62828)"
+                : "linear-gradient(135deg, #3949AB, #5C6BC0)",
+              fontSize: voiceResult ? 36 : 32,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 10px",
+              boxShadow: voiceResult ? "0 0 0 14px rgba(0,172,193,0.25)" : voiceListening ? "0 0 0 14px rgba(229,57,53,0.25)" : "0 4px 15px rgba(0,0,0,0.3)",
+              transition: "all 0.3s",
+              animation: (voiceResult && !voiceSpeaking) ? "pulse 1.2s infinite" : "none"
+            }}>
+            {voiceTranslating ? "⏳" : voiceResult ? "🔊" : voiceListening ? "🎤" : "🎤"}
           </button>
-          <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: "Arial", marginBottom: 12 }}>
-            {voiceListening
-              ? { en: "Listening… speak then pause ✋", es: "Escuchando… hablá y hacé pausa ✋", fr: "Écoute… parle puis pause ✋" }[lang]
+          <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "Arial", fontWeight: voiceResult ? "bold" : "normal", marginBottom: 12 }}>
+            {voiceSpeaking
+              ? { en: "Speaking…", es: "Hablando…", fr: "En train de parler…" }[lang]
+              : voiceResult
+              ? { en: "▶ Tap to hear", es: "▶ Toca para escuchar", fr: "▶ Appuie pour entendre" }[lang]
+              : voiceTranslating
+              ? { en: "Translating…", es: "Traduciendo…", fr: "Traduction…" }[lang]
+              : voiceListening
+              ? { en: "Listening… pause to finish", es: "Escuchando… pausá para terminar", fr: "Écoute… pause pour finir" }[lang]
               : { en: "Tap to speak", es: "Toca para hablar", fr: "Appuie pour parler" }[lang]}
           </div>
 
@@ -1116,9 +1134,9 @@ export default function App() {
                 {voiceDirection === "toEs" ? "ESPAÑOL" : (lang === "fr" ? "FRANÇAIS" : "ENGLISH")}
               </div>
               <div style={{ color: "white", fontSize: 16, fontWeight: "bold", fontFamily: "Arial", marginBottom: 8 }}>{voiceResult.translated}</div>
-              <button onClick={() => speakText(voiceResult.translated, voiceResult.toLang || (voiceDirection === "toEs" ? "es" : lang))}
-                style={{ background: voiceSpeaking ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: 12, color: "white", fontSize: 15, fontWeight: "bold", padding: "12px 0", width: "100%", cursor: "pointer", fontFamily: "Arial", marginTop: 4 }}>
-                {voiceSpeaking ? "🔊 Playing…" : "🔊 " + { en: "Tap to hear in Spanish", es: "Toca para escuchar", fr: "Appuie pour entendre" }[lang]}
+              <button onClick={() => { setVoiceResult(null); setVoiceStatus(""); }}
+                style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, color: "rgba(255,255,255,0.6)", fontSize: 11, padding: "5px 14px", cursor: "pointer", fontFamily: "Arial", marginTop: 4 }}>
+                🎤 { { en: "New translation", es: "Nueva traducción", fr: "Nouvelle traduction" }[lang] }
               </button>
             </div>
           )}
@@ -1150,7 +1168,7 @@ export default function App() {
         <button onClick={() => sendMessage()} disabled={loading || (!input.trim() && !imageBase64)}
           style={{ background: (loading || (!input.trim() && !imageBase64)) ? "#b2dfdb" : "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: "50%", width: 42, height: 42, cursor: (loading || (!input.trim() && !imageBase64)) ? "default" : "pointer", color: "white", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>➤</button>
       </div>
-      <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}} *{box-sizing:border-box} ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:2px}`}</style>
+      <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}} @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}} *{box-sizing:border-box} ::-webkit-scrollbar{width:3px} ::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:2px}`}</style>
 
       {showPaywall && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
