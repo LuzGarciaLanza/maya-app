@@ -449,6 +449,7 @@ const categories = [
   { id: "timeshare", emoji: "⚠️", en: "Timeshare", es: "Timeshare", fr: "Timeshare" },
   { id: "deals", emoji: "🎫", en: "Deals & Discounts", es: "Descuentos", fr: "Bons Plans" },
   { id: "translate", emoji: "📷", en: "Translate Photo", es: "Traducir Foto", fr: "Traduire Photo" },
+  { id: "voice", emoji: "🎤", en: "Voice Translator", es: "Traductor de Voz", fr: "Traducteur Vocal" },
   { id: "pets", emoji: "🐾", en: "Pets & Dogs", es: "Mascotas", fr: "Animaux" },
   { id: "where_stay", emoji: "🏨", en: "Where to Stay", es: "Dónde Quedarse", fr: "Où Loger" },
   { id: "rules", emoji: "🚫", en: "Local Rules", es: "Reglas Locales", fr: "Règles Locales" },
@@ -508,6 +509,12 @@ export default function App() {
   const [imageBase64, setImageBase64] = useState(null);
   const [expandedDeal, setExpandedDeal] = useState(null);
   const [translateMode, setTranslateMode] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [voiceListening, setVoiceListening] = useState(false);
+  const [voiceResult, setVoiceResult] = useState(null); // { original, translated }
+  const [voiceSpeaking, setVoiceSpeaking] = useState(false);
+  const [voiceDirection, setVoiceDirection] = useState("toEs"); // toEs | fromEs
+  const recognitionRef = useRef(null);
   const [freeCount, setFreeCount] = useState(() => parseInt(localStorage.getItem('maya_free') || '0'));
   const [hasAccess, setHasAccess] = useState(() => localStorage.getItem('maya_access') === 'true');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -566,8 +573,74 @@ export default function App() {
     }
   }
 
+  function speakText(text, speakLang) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = speakLang === "es" ? "es-MX" : speakLang === "fr" ? "fr-FR" : "en-US";
+    utter.rate = 0.9;
+    utter.onstart = () => setVoiceSpeaking(true);
+    utter.onend = () => setVoiceSpeaking(false);
+    window.speechSynthesis.speak(utter);
+  }
+
+  async function translateVoice(text) {
+    const fromLang = voiceDirection === "toEs" ? lang : "es";
+    const toLang = voiceDirection === "toEs" ? "es" : lang;
+    const fromName = fromLang === "es" ? "Spanish" : fromLang === "fr" ? "French" : "English";
+    const toName = toLang === "es" ? "Spanish" : toLang === "fr" ? "French" : "English";
+    try {
+      const res = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-5",
+          max_tokens: 256,
+          system: `You are a translator. Translate the given text from ${fromName} to ${toName}. Reply with ONLY the translation, no explanations, no quotes.`,
+          messages: [{ role: "user", content: text }]
+        })
+      });
+      const data = await res.json();
+      const translated = data.content?.[0]?.text || "";
+      setVoiceResult({ original: text, translated });
+      speakText(translated, toLang);
+    } catch {
+      setVoiceResult({ original: text, translated: "❌ Error al traducir" });
+    }
+  }
+
+  function startListening() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceResult({ original: "", translated: "❌ Tu navegador no soporta voz. Usá Chrome." });
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = voiceDirection === "toEs"
+      ? (lang === "fr" ? "fr-FR" : "en-US")
+      : "es-MX";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setVoiceListening(true);
+    recognition.onresult = (e) => {
+      const text = e.results[0][0].transcript;
+      setVoiceListening(false);
+      translateVoice(text);
+    };
+    recognition.onerror = () => { setVoiceListening(false); };
+    recognition.onend = () => setVoiceListening(false);
+    recognition.start();
+  }
+
+  function stopListening() {
+    recognitionRef.current?.stop();
+    setVoiceListening(false);
+  }
+
   function startWithCategory(cat) {
     if (cat.id === "translate") { setTranslateMode(true); setMessages([]); setScreen("chat"); return; }
+    if (cat.id === "voice") { setVoiceMode(true); setVoiceResult(null); setScreen("chat"); return; }
     if (cat.id === "deals") { setScreen("deals"); return; }
     if (!hasAccess && freeCount >= FREE_LIMIT) { setShowPaywall(true); return; }
     const q = firstQ[cat.id]?.[lang];
@@ -876,6 +949,7 @@ export default function App() {
         {categories.map(cat => (
           <button key={cat.id} onClick={() => {
             if (cat.id === "translate") { setTranslateMode(true); return; }
+            if (cat.id === "voice") { setVoiceMode(true); setVoiceResult(null); return; }
             if (cat.id === "deals") { setScreen("deals"); return; }
             if (!hasAccess && freeCount >= FREE_LIMIT) { setShowPaywall(true); return; }
             const q = firstQ[cat.id]?.[lang];
@@ -955,6 +1029,57 @@ export default function App() {
         </div>
       )}
 
+
+      {/* Voice Translator mode */}
+      {voiceMode && (
+        <div style={{ margin: "0 12px 10px", borderRadius: 16, background: "linear-gradient(135deg, #1A237E, #283593)", border: "2px solid rgba(121,134,203,0.4)", padding: "18px 16px", textAlign: "center" }}>
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 10, fontFamily: "Arial" }}>
+            <button onClick={() => setVoiceDirection("toEs")} style={{ background: voiceDirection==="toEs" ? "rgba(255,255,255,0.2)" : "transparent", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, color: voiceDirection==="toEs" ? "white" : "rgba(255,255,255,0.45)", padding: "4px 12px", fontSize: 11, cursor: "pointer", marginRight: 6 }}>
+              {lang === "fr" ? "FR → ES" : "EN → ES"}
+            </button>
+            <button onClick={() => setVoiceDirection("fromEs")} style={{ background: voiceDirection==="fromEs" ? "rgba(255,255,255,0.2)" : "transparent", border: "1px solid rgba(255,255,255,0.2)", borderRadius: 20, color: voiceDirection==="fromEs" ? "white" : "rgba(255,255,255,0.45)", padding: "4px 12px", fontSize: 11, cursor: "pointer" }}>
+              {lang === "fr" ? "ES → FR" : "ES → EN"}
+            </button>
+          </div>
+
+          {/* Mic button */}
+          <button
+            onTouchStart={startListening}
+            onMouseDown={startListening}
+            onTouchEnd={stopListening}
+            onMouseUp={stopListening}
+            style={{ width: 80, height: 80, borderRadius: "50%", border: "none", background: voiceListening ? "linear-gradient(135deg, #e53935, #c62828)" : "linear-gradient(135deg, #3949AB, #5C6BC0)", cursor: "pointer", fontSize: 32, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", boxShadow: voiceListening ? "0 0 0 12px rgba(229,57,53,0.25)" : "0 4px 15px rgba(0,0,0,0.3)", transition: "all 0.2s" }}>
+            🎤
+          </button>
+          <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: "Arial", marginBottom: 12 }}>
+            {voiceListening
+              ? { en: "Listening… speak now", es: "Escuchando… habla ahora", fr: "Écoute… parle maintenant" }[lang]
+              : { en: "Hold to speak", es: "Mantén para hablar", fr: "Maintiens pour parler" }[lang]}
+          </div>
+
+          {/* Result */}
+          {voiceResult && (
+            <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: 12, padding: "12px 14px", textAlign: "left", marginBottom: 10 }}>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontFamily: "Arial", marginBottom: 4 }}>
+                {voiceDirection === "toEs" ? (lang === "fr" ? "FRANÇAIS" : "ENGLISH") : "ESPAÑOL"}
+              </div>
+              <div style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, fontFamily: "Arial", marginBottom: 10 }}>{voiceResult.original}</div>
+              <div style={{ color: "rgba(255,255,255,0.45)", fontSize: 10, fontFamily: "Arial", marginBottom: 4 }}>
+                {voiceDirection === "toEs" ? "ESPAÑOL" : (lang === "fr" ? "FRANÇAIS" : "ENGLISH")}
+              </div>
+              <div style={{ color: "white", fontSize: 16, fontWeight: "bold", fontFamily: "Arial", marginBottom: 8 }}>{voiceResult.translated}</div>
+              <button onClick={() => speakText(voiceResult.translated, voiceDirection === "toEs" ? "es" : lang)}
+                style={{ background: voiceSpeaking ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: 20, color: "white", fontSize: 12, padding: "6px 14px", cursor: "pointer", fontFamily: "Arial" }}>
+                {voiceSpeaking ? "🔊 Playing…" : "🔊 " + { en: "Play again", es: "Reproducir", fr: "Rejouer" }[lang]}
+              </button>
+            </div>
+          )}
+
+          <button onClick={() => { setVoiceMode(false); setVoiceResult(null); window.speechSynthesis?.cancel(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 11, cursor: "pointer", fontFamily: "Arial" }}>
+            {{ en: "Close", es: "Cerrar", fr: "Fermer" }[lang]}
+          </button>
+        </div>
+      )}
 
       {imagePreview && (
         <div style={{ background: "white", borderTop: "1px solid #e0f7fa", padding: "8px 12px", display: "flex", alignItems: "center", gap: 10 }}>
