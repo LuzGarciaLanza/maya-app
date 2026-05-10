@@ -254,7 +254,7 @@ Playa del Carmen is very walkable in the tourist zone. But knowing your options 
 WALKING:
 - The tourist zone (beach to highway, ferry dock to CTM Ave) is very walkable.
 - From the ferry dock (south end of 5th Ave) to CTM Ave (north end): about 25-30 minute walk.
-- From 5th Ave to the beach: 1-2 minute walk from anywhere in the tourist zone.
+- From 5th Ave to the beach: about 10-15 minute walk (11-12 blocks east). The beach is not right next to 5th Ave — plan accordingly.
 - Comfortable walking shoes are important — 5th Ave is cobblestone.
 - Best time to walk: before 11am or after 5pm. Midday heat is brutal.
 
