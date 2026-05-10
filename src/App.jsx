@@ -983,7 +983,7 @@ export default function App() {
   return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#f0f4f8", fontFamily: "Arial, sans-serif", maxWidth: 700, margin: "0 auto" }}>
       <div style={{ background: "linear-gradient(135deg, #0a1628, #0d2137)", padding: "11px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-        <button onClick={() => setScreen("landing")} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", fontSize: 12, padding: 0 }}>{tText.back}</button>
+        <button onClick={() => setScreen("landing")} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 20, color: "white", cursor: "pointer", fontSize: 13, fontWeight: 700, padding: "6px 14px", fontFamily: "'Poppins',sans-serif", flexShrink: 0 }}>← {tText.back.replace("← ", "")}</button>
         <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 9, justifyContent: "center" }}>
           <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #00897B, #00ACC1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🌴</div>
           <div>
