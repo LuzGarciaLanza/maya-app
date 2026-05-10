@@ -614,9 +614,8 @@ export default function App() {
       });
       const data = await res.json();
       const translated = data.content?.[0]?.text || "❌ Empty response";
-      setVoiceResult({ original: text, translated });
+      setVoiceResult({ original: text, translated, toLang });
       setVoiceStatus("");
-      speakText(translated, toLang);
     } catch (e) {
       setVoiceResult({ original: text, translated: `❌ Error: ${e.message}` });
       setVoiceStatus("");
@@ -1108,9 +1107,9 @@ export default function App() {
                 {voiceDirection === "toEs" ? "ESPAÑOL" : (lang === "fr" ? "FRANÇAIS" : "ENGLISH")}
               </div>
               <div style={{ color: "white", fontSize: 16, fontWeight: "bold", fontFamily: "Arial", marginBottom: 8 }}>{voiceResult.translated}</div>
-              <button onClick={() => speakText(voiceResult.translated, voiceDirection === "toEs" ? "es" : lang)}
-                style={{ background: voiceSpeaking ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: 20, color: "white", fontSize: 12, padding: "6px 14px", cursor: "pointer", fontFamily: "Arial" }}>
-                {voiceSpeaking ? "🔊 Playing…" : "🔊 " + { en: "Play again", es: "Reproducir", fr: "Rejouer" }[lang]}
+              <button onClick={() => speakText(voiceResult.translated, voiceResult.toLang || (voiceDirection === "toEs" ? "es" : lang))}
+                style={{ background: voiceSpeaking ? "rgba(255,255,255,0.15)" : "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", borderRadius: 12, color: "white", fontSize: 15, fontWeight: "bold", padding: "12px 0", width: "100%", cursor: "pointer", fontFamily: "Arial", marginTop: 4 }}>
+                {voiceSpeaking ? "🔊 Playing…" : "🔊 " + { en: "Tap to hear in Spanish", es: "Toca para escuchar", fr: "Appuie pour entendre" }[lang]}
               </button>
             </div>
           )}
