@@ -1108,8 +1108,8 @@ export default function App() {
             </div>
           )}
 
-          <button onClick={() => { setVoiceMode(false); setVoiceResult(null); window.speechSynthesis?.cancel(); }} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.3)", fontSize: 11, cursor: "pointer", fontFamily: "Arial" }}>
-            {{ en: "Close", es: "Cerrar", fr: "Fermer" }[lang]}
+          <button onClick={() => { setVoiceMode(false); setVoiceResult(null); window.speechSynthesis?.cancel(); }} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.25)", borderRadius: 20, color: "white", fontSize: 13, fontWeight: "bold", padding: "8px 24px", cursor: "pointer", fontFamily: "Arial", marginTop: 4 }}>
+            ✕ {{ en: "Close", es: "Cerrar", fr: "Fermer" }[lang]}
           </button>
         </div>
       )}
