@@ -609,18 +609,25 @@ export default function App() {
     }
   }
 
-  function startListening() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setVoiceResult({ original: "", translated: "❌ Tu navegador no soporta voz. Usá Chrome." });
+  function toggleListening() {
+    if (voiceListening) {
+      recognitionRef.current?.stop();
+      setVoiceListening(false);
       return;
     }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceResult({ original: "", translated: "❌ Navegador no compatible. Usá Chrome en Android o Safari en iPhone." });
+      return;
+    }
+    setVoiceResult(null);
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
     recognition.lang = voiceDirection === "toEs"
       ? (lang === "fr" ? "fr-FR" : "en-US")
       : "es-MX";
     recognition.interimResults = false;
+    recognition.continuous = false;
     recognition.maxAlternatives = 1;
     recognition.onstart = () => setVoiceListening(true);
     recognition.onresult = (e) => {
@@ -628,14 +635,12 @@ export default function App() {
       setVoiceListening(false);
       translateVoice(text);
     };
-    recognition.onerror = () => { setVoiceListening(false); };
+    recognition.onerror = (e) => {
+      setVoiceListening(false);
+      setVoiceResult({ original: "", translated: `❌ Error: ${e.error}. Intentá de nuevo.` });
+    };
     recognition.onend = () => setVoiceListening(false);
     recognition.start();
-  }
-
-  function stopListening() {
-    recognitionRef.current?.stop();
-    setVoiceListening(false);
   }
 
   function startWithCategory(cat) {
@@ -1044,18 +1049,22 @@ export default function App() {
 
           {/* Mic button */}
           <button
-            onTouchStart={startListening}
-            onMouseDown={startListening}
-            onTouchEnd={stopListening}
-            onMouseUp={stopListening}
-            style={{ width: 80, height: 80, borderRadius: "50%", border: "none", background: voiceListening ? "linear-gradient(135deg, #e53935, #c62828)" : "linear-gradient(135deg, #3949AB, #5C6BC0)", cursor: "pointer", fontSize: 32, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", boxShadow: voiceListening ? "0 0 0 12px rgba(229,57,53,0.25)" : "0 4px 15px rgba(0,0,0,0.3)", transition: "all 0.2s" }}>
-            🎤
+            onClick={toggleListening}
+            style={{ width: 80, height: 80, borderRadius: "50%", border: "none", background: voiceListening ? "linear-gradient(135deg, #e53935, #c62828)" : "linear-gradient(135deg, #3949AB, #5C6BC0)", cursor: "pointer", fontSize: 32, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", boxShadow: voiceListening ? "0 0 0 14px rgba(229,57,53,0.3)" : "0 4px 15px rgba(0,0,0,0.3)", transition: "all 0.2s" }}>
+            {voiceListening ? "⏹️" : "🎤"}
           </button>
           <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: "Arial", marginBottom: 12 }}>
             {voiceListening
-              ? { en: "Listening… speak now", es: "Escuchando… habla ahora", fr: "Écoute… parle maintenant" }[lang]
-              : { en: "Hold to speak", es: "Mantén para hablar", fr: "Maintiens pour parler" }[lang]}
+              ? { en: "Listening… tap ⏹ to stop", es: "Escuchando… toca ⏹ para parar", fr: "Écoute… appuie ⏹ pour arrêter" }[lang]
+              : { en: "Tap 🎤 to speak", es: "Toca 🎤 para hablar", fr: "Appuie 🎤 pour parler" }[lang]}
           </div>
+
+          {/* Translating spinner */}
+          {!voiceListening && !voiceResult && loading && (
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontFamily: "Arial", marginBottom: 10 }}>
+              ⏳ { { en: "Translating…", es: "Traduciendo…", fr: "Traduction…" }[lang] }
+            </div>
+          )}
 
           {/* Result */}
           {voiceResult && (
