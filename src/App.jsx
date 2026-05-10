@@ -22,8 +22,8 @@ function inlineBold(line) {
   while ((m = re.exec(line)) !== null) {
     if (m.index > last) parts.push(line.slice(last, m.index));
     if (m[1] !== undefined) {
-      // **bold**
-      parts.push(<strong key={key++}>{m[1]}</strong>);
+      // **bold** — recursively process in case it contains [[Place Name]]
+      parts.push(<strong key={key++}>{inlineBold(m[1])}</strong>);
     } else {
       // [[Place Name]] → Google Maps link
       const place = m[2];
