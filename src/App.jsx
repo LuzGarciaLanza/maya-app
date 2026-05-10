@@ -881,88 +881,101 @@ export default function App() {
   );
 
   // ── LANDING ──────────────────────────────────────────────
+  const catColors = [
+    { border: "rgba(0,172,193,0.35)",  bg: "rgba(0,172,193,0.08)" },
+    { border: "rgba(255,107,53,0.3)",  bg: "rgba(255,107,53,0.07)" },
+    { border: "rgba(76,175,80,0.3)",   bg: "rgba(76,175,80,0.07)" },
+    { border: "rgba(255,213,79,0.3)",  bg: "rgba(255,213,79,0.07)" },
+    { border: "rgba(171,71,188,0.3)",  bg: "rgba(171,71,188,0.07)" },
+    { border: "rgba(41,182,246,0.3)",  bg: "rgba(41,182,246,0.07)" },
+  ];
+  const gridCats = categories.filter(c => c.id !== "deals");
+  const freeDots = [0,1,2].map(i => i < (hasAccess ? 0 : Math.max(0, FREE_LIMIT - freeCount)) ? "full" : "used");
+
   if (screen === "landing") return (
-    <div style={{ minHeight: "100vh", background: "#0a1628", fontFamily: "'Georgia', serif", color: "white", position: "relative", overflow: "hidden", paddingBottom: 60 }}>
-      <div style={{ position: "fixed", inset: 0, background: "radial-gradient(ellipse at 30% 20%, rgba(0,150,136,0.18) 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, rgba(0,172,193,0.12) 0%, transparent 60%)", pointerEvents: "none" }} />
+    <div style={{ minHeight: "100vh", background: "#012A2A", fontFamily: "'Poppins', sans-serif", color: "white", position: "relative" }}>
 
-      <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 20 }}>🌴</span>
-          <span style={{ fontWeight: "bold", letterSpacing: 3, fontSize: 14, color: "#80DEEA" }}>MAYA</span>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", fontFamily: "Arial", marginLeft: 4 }}>Riviera Maya</span>
-        </div>
-        <div style={{ display: "flex", gap: 5 }}>
-          {["en","es","fr"].map(l => (
-            <button key={l} onClick={() => setLang(l)} style={{ background: lang===l ? "rgba(0,172,193,0.2)" : "transparent", border: `1px solid ${lang===l ? "rgba(0,172,193,0.5)" : "rgba(255,255,255,0.12)"}`, color: lang===l ? "white" : "rgba(255,255,255,0.35)", padding: "3px 9px", borderRadius: 20, fontSize: 9, cursor: "pointer", fontFamily: "Arial", letterSpacing: 1 }}>{l.toUpperCase()}</button>
-          ))}
-        </div>
-      </div>
+      {/* Hero gradient */}
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 320, background: "linear-gradient(160deg, #006666 0%, #004D4D 40%, #012A2A 100%)", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{ position: "fixed", top: -80, right: -80, width: 280, height: 280, background: "radial-gradient(circle, rgba(255,107,53,0.2) 0%, transparent 70%)", borderRadius: "50%", pointerEvents: "none", zIndex: 0 }} />
 
-      <div style={{ position: "relative", zIndex: 5, textAlign: "center", padding: "20px 20px 16px" }}>
-        <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, #00897B, #00ACC1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, margin: "0 auto 14px", boxShadow: "0 0 40px rgba(0,172,193,0.25)" }}>🌴</div>
-        <h1 style={{ fontSize: "clamp(28px, 7vw, 48px)", fontWeight: "bold", background: "linear-gradient(135deg, #80DEEA, #26C6DA)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: 6, marginBottom: 10 }}>MAYA</h1>
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontFamily: "Arial", maxWidth: 360, margin: "0 auto 16px", lineHeight: 1.7 }}>
-          {{ en: "Your insider guide to the Riviera Maya — beaches, food, safety, deals & more.", es: "Tu guía insider de la Riviera Maya — playas, comida, seguridad, descuentos y más.", fr: "Ton guide insider de la Riviera Maya — plages, nourriture, sécurité, bons plans et plus." }[lang]}
-        </p>
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 480, margin: "0 auto", padding: "0 18px 48px" }}>
 
-        <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 18, flexWrap: "wrap" }}>
-          {[
-            { en: "🇲🇽 EN·ES·FR", es: "🇲🇽 EN·ES·FR", fr: "🇲🇽 EN·ES·FR" },
-            { en: "📷 Photo Translate", es: "📷 Traducir Fotos", fr: "📷 Traduire Photos" },
-            { en: "🎫 Local Deals", es: "🎫 Descuentos", fr: "🎫 Bons Plans" },
-            { en: "✅ Verified 2026", es: "✅ Verificado 2026", fr: "✅ Vérifié 2026" },
-          ].map(b => (
-            <span key={b[lang]} style={{ background: b[lang].includes("🎫") ? "rgba(255,213,79,0.12)" : b[lang].includes("📷") ? "rgba(0,172,193,0.12)" : "rgba(255,255,255,0.05)", border: `1px solid ${b[lang].includes("🎫") ? "rgba(255,213,79,0.3)" : b[lang].includes("📷") ? "rgba(0,172,193,0.3)" : "rgba(255,255,255,0.09)"}`, borderRadius: 20, padding: "4px 10px", fontSize: 10, color: b[lang].includes("🎫") ? "#FFD54F" : b[lang].includes("📷") ? "#80DEEA" : "rgba(255,255,255,0.5)", fontFamily: "Arial" }}>{b[lang]}</span>
-          ))}
+        {/* Top bar */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 52, marginBottom: 0 }}>
+          <div style={{ display: "flex", gap: 6 }}>
+            {["en","es","fr"].map(l => (
+              <button key={l} onClick={() => setLang(l)} style={{ background: lang===l ? "#FF6B35" : "rgba(255,255,255,0.1)", border: `1px solid ${lang===l ? "#FF6B35" : "rgba(255,255,255,0.18)"}`, borderRadius: 20, color: lang===l ? "white" : "rgba(255,255,255,0.55)", padding: "4px 11px", fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins',sans-serif", letterSpacing: 0.5 }}>{l.toUpperCase()}</button>
+            ))}
+          </div>
+          <div style={{ background: "rgba(255,213,79,0.12)", border: "1px solid rgba(255,213,79,0.35)", borderRadius: 20, color: "#FFD54F", fontSize: 10, fontWeight: 600, padding: "4px 11px" }}>✓ Verified 2026</div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-          <button onClick={() => setScreen("chat")} style={{ background: "linear-gradient(135deg, #00897B, #00ACC1)", border: "none", color: "white", padding: "13px 28px", borderRadius: 50, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial", boxShadow: "0 4px 20px rgba(0,172,193,0.3)" }}>
-            {tText.start}
-          </button>
-          <button onClick={() => setScreen("deals")} style={{ background: "linear-gradient(135deg, rgba(255,213,79,0.2), rgba(255,160,0,0.15))", border: "1px solid rgba(255,213,79,0.4)", color: "#FFD54F", padding: "13px 28px", borderRadius: 50, fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
-            🎫 {tText.deals}
-          </button>
-        </div>
-      </div>
+        {/* Hero */}
+        <div style={{ textAlign: "center", padding: "28px 0 0" }}>
+          <div style={{ fontSize: 52, marginBottom: 6, filter: "drop-shadow(0 4px 12px rgba(0,172,193,0.5))" }}>🌴</div>
+          <h1 style={{ fontSize: 42, fontWeight: 900, letterSpacing: 6, background: "linear-gradient(135deg, #4DD9E8, #00ACC1, #4DD9E8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1, marginBottom: 8, fontFamily: "'Poppins',sans-serif" }}>MAYA</h1>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", letterSpacing: 3, textTransform: "uppercase", marginBottom: 16 }}>Riviera Maya Insider</p>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.7)", lineHeight: 1.55, maxWidth: 290, margin: "0 auto 20px" }}>
+            {{ en: "Your local expert for beaches, food, safety & hidden gems", es: "Tu experta local en playas, comida, seguridad y rincones secretos", fr: "Ton experte locale pour plages, food, sécurité & coins secrets" }[lang]}
+          </p>
 
-      <div style={{ position: "relative", zIndex: 5, padding: "0 12px" }}>
-        <p style={{ textAlign: "center", fontSize: 9, letterSpacing: 3, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", marginBottom: 10, fontFamily: "Arial" }}>
-          {{ en: "Browse by topic", es: "Explorar por tema", fr: "Parcourir par thème" }[lang]}
-        </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6, maxWidth: 480, margin: "0 auto" }}>
-          {categories.map(cat => (
-            <button key={cat.id} onClick={() => startWithCategory(cat)}
-              style={{
-                background: cat.id === "deals" ? "rgba(255,213,79,0.1)" : cat.id === "translate" ? "rgba(0,172,193,0.1)" : "rgba(255,255,255,0.04)",
-                border: `1px solid ${cat.id === "deals" ? "rgba(255,213,79,0.3)" : cat.id === "translate" ? "rgba(0,172,193,0.3)" : "rgba(255,255,255,0.08)"}`,
-                borderRadius: 10, padding: "10px 4px",
-                display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                cursor: "pointer", color: "white",
-                gridColumn: (cat.id === "deals" || cat.id === "translate") ? "span 3" : "span 1",
-              }}>
-              {cat.customIcon
-                ? <img src={`data:image/png;base64,${cat.customIcon}`} style={{width:26,height:26,objectFit:"cover",borderRadius:6}} alt="" />
-                : <span style={{ fontSize: (cat.id === "deals" || cat.id === "translate") ? 20 : 18 }}>{cat.emoji}</span>}
-              <span style={{ fontSize: (cat.id === "deals" || cat.id === "translate") ? 11 : 9, color: cat.id === "deals" ? "#FFD54F" : cat.id === "translate" ? "#80DEEA" : "rgba(255,255,255,0.55)", fontFamily: "Arial", textAlign: "center", lineHeight: 1.3, fontWeight: (cat.id === "deals" || cat.id === "translate") ? "bold" : "normal" }}>
-                {cat.id === "deals"
-                  ? { en: "🎫 Exclusive Deals — Restaurants, Tours, Transport & More", es: "🎫 Descuentos Exclusivos — Restaurantes, Tours, Transporte y Más", fr: "🎫 Bons Plans Exclusifs — Restaurants, Excursions, Transport et Plus" }[lang]
-                  : cat.id === "translate"
-                  ? { en: "📷 Translate Any Sign, Label or Menu Instantly", es: "📷 Traducir Cualquier Cartel, Etiqueta o Menú", fr: "📷 Traduire N'importe Quel Panneau ou Menu" }[lang]
-                  : cat[lang]}
+          {/* Free counter */}
+          {!hasAccess && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,213,79,0.1)", border: "1px solid rgba(255,213,79,0.3)", borderRadius: 24, padding: "8px 16px", marginBottom: 24 }}>
+              <div style={{ display: "flex", gap: 5 }}>
+                {freeDots.map((d,i) => <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: d === "full" ? "#FFD54F" : "rgba(255,255,255,0.2)" }} />)}
+              </div>
+              <span style={{ fontSize: 12, color: "#FFD54F", fontWeight: 600 }}>
+                {Math.max(0, FREE_LIMIT - freeCount)} {{ en: "free questions left", es: "preguntas gratis", fr: "questions gratuites" }[lang]}
               </span>
-            </button>
-          ))}
+            </div>
+          )}
         </div>
+
+        {/* CTA buttons */}
+        <button onClick={() => setScreen("chat")} style={{ width: "100%", background: "linear-gradient(135deg, #FF6B35, #FF8A50)", border: "none", borderRadius: 18, color: "white", fontFamily: "'Poppins',sans-serif", fontSize: 19, fontWeight: 700, padding: "18px 24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 8px 28px rgba(255,107,53,0.4)", marginBottom: 10 }}>
+          🌊 {tText.start}
+        </button>
+        <button onClick={() => setScreen("deals")} style={{ width: "100%", background: "rgba(255,213,79,0.08)", border: "2px solid rgba(255,213,79,0.4)", borderRadius: 18, color: "#FFD54F", fontFamily: "'Poppins',sans-serif", fontSize: 16, fontWeight: 700, padding: "14px 24px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 28 }}>
+          🎫 {tText.deals}
+        </button>
+
+        {/* Section header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2.5, color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
+            {{ en: "Browse by topic", es: "Explorar por tema", fr: "Parcourir par thème" }[lang]}
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#00ACC1" }}>
+            + {gridCats.length} {{ en: "topics →", es: "temas →", fr: "thèmes →" }[lang]}
+          </span>
+        </div>
+
+        {/* Category grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {gridCats.map((cat, i) => {
+            const c = catColors[i % catColors.length];
+            return (
+              <button key={cat.id} onClick={() => startWithCategory(cat)}
+                style={{ background: c.bg, border: `1px solid ${c.border}`, borderRadius: 16, color: "white", padding: "14px 6px 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                {cat.customIcon
+                  ? <img src={`data:image/png;base64,${cat.customIcon}`} style={{ width: 28, height: 28, objectFit: "cover", borderRadius: 6 }} alt="" />
+                  : <span style={{ fontSize: 26 }}>{cat.emoji}</span>}
+                <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.8)", textAlign: "center", lineHeight: 1.2 }}>{cat[lang]}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 28, lineHeight: 2, fontFamily: "'Poppins',sans-serif" }}>
+          MAYA · holamaya.lat · 2026<br />
+          <a href="/terms.html" style={{ color: "rgba(0,172,193,0.5)", textDecoration: "none" }}>
+            {{ en: "Terms & Privacy", es: "Términos y Privacidad", fr: "CGU & Confidentialité" }[lang]}
+          </a>
+        </p>
       </div>
-      <p style={{ textAlign: "center", fontSize: 10, color: "rgba(255,255,255,0.25)", fontFamily: "Arial", marginTop: 24, lineHeight: 2 }}>
-        MAYA • Riviera Maya Insider Guide • 2026
-        <br />
-        <a href="/terms.html" style={{ color: "#80DEEA", textDecoration: "none", fontSize: 10, opacity: 0.6 }}>
-          {{ en: "Terms of Use & Privacy Policy", es: "Términos de Uso y Política de Privacidad", fr: "CGU & Politique de Confidentialité" }[lang]}
-        </a>
-      </p>
-      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
+      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}`}</style>
     </div>
   );
 
