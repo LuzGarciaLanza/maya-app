@@ -16,11 +16,23 @@ function renderMarkdown(text) {
 
 function inlineBold(line) {
   const parts = [];
-  const re = /\*\*(.+?)\*\*/g;
+  // Match both **bold** and [text](url)
+  const re = /\*\*(.+?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
   let last = 0, m, key = 0;
   while ((m = re.exec(line)) !== null) {
     if (m.index > last) parts.push(line.slice(last, m.index));
-    parts.push(<strong key={key++}>{m[1]}</strong>);
+    if (m[1] !== undefined) {
+      // **bold**
+      parts.push(<strong key={key++}>{m[1]}</strong>);
+    } else {
+      // [text](url) — open in new tab
+      parts.push(
+        <a key={key++} href={m[3]} target="_blank" rel="noopener noreferrer"
+          style={{ color: "#00ACC1", textDecoration: "underline", fontWeight: 600 }}>
+          📍 {m[2]}
+        </a>
+      );
+    }
     last = m.index + m[0].length;
   }
   if (last < line.length) parts.push(line.slice(last));
@@ -39,6 +51,8 @@ LANGUAGE RULE: ALWAYS respond in the SAME language the user writes in (English, 
 DEALS: When asked about deals or discounts, direct users to the 🎫 Deals section in the menu.
 
 5TH AVENUE (La Quinta Avenida) TONE RULE: 5th Avenue is the heart of Playa del Carmen — a vibrant, iconic pedestrian street that tourists love and SHOULD enjoy. The businesses there pay premium rents and offer a real, quality experience. When mentioning that it's more expensive than local alternatives, ALWAYS frame it positively: acknowledge the price difference briefly but NEVER discourage tourists from going. Celebrate 5th Ave as a must-do. Help them enjoy it smartly — with tips on which restaurants, shops or spots are worth the price — but never make them feel they should avoid it. Example tone: "5th Ave is iconic and absolutely worth it — yes, prices are higher than local spots, but the vibe and some of the restaurants are genuinely special. Here are my favorites..." Respect the local businesses there.
+
+GOOGLE MAPS LINKS RULE: Whenever you mention a specific named place — restaurant, bar, café, shop, beach, cenote, ruin, park, hotel, or any specific location — ALWAYS format it as a clickable markdown link to Google Maps using this exact format: [Place Name](https://maps.google.com/?q=Place+Name+Playa+del+Carmen+Mexico) — replace spaces with + in the URL. Add the city context (Playa+del+Carmen, Tulum, Cozumel, etc.) to the search so it finds the right place. This lets users tap the name and open it directly in Google Maps. Example: "I love [El Fogon](https://maps.google.com/?q=El+Fogon+Playa+del+Carmen+Mexico) for tacos." Do this for EVERY named place, every time.
 
 FOOD ON 5TH AVENUE: NEVER tell tourists to avoid 5th Avenue for food. There are excellent restaurants on 5th Ave that are worth every peso — the ambiance, the location, and the quality justify the price. When recommending food, include both 5th Ave options AND local spots off the main drag, presenting them as different experiences — not as "better vs worse." Frame it as: "For the 5th Ave experience, I love [restaurant]... and if you want to eat like a local, try [street spot] a few blocks away." Always give options, never steer people away.
 
