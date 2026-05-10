@@ -627,8 +627,10 @@ export default function App() {
 
   function toggleListening() {
     if (voiceListening) {
-      recognitionRef.current?.stop();
+      // Cancel without processing — just abort
+      recognitionRef.current?.abort();
       setVoiceListening(false);
+      setVoiceStatus("");
       return;
     }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -637,7 +639,7 @@ export default function App() {
       return;
     }
     setVoiceResult(null);
-    setVoiceStatus("Starting…");
+    setVoiceStatus("");
     const recognition = new SpeechRecognition();
     recognitionRef.current = recognition;
     const dir = voiceDirectionRef.current;
@@ -646,11 +648,14 @@ export default function App() {
     recognition.interimResults = false;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
-    recognition.onstart = () => { setVoiceListening(true); setVoiceStatus("Listening…"); };
+    recognition.onstart = () => {
+      setVoiceListening(true);
+      setVoiceStatus({ en: "Listening… speak, then pause", es: "Escuchando… hablá y hacé pausa", fr: "Écoute… parle puis fais une pause" }[langRef.current]);
+    };
     recognition.onresult = (e) => {
       const text = e.results[0][0].transcript;
       setVoiceListening(false);
-      setVoiceStatus(`Heard: "${text}"`);
+      setVoiceStatus(`"${text}"`);
       translateVoice(text);
     };
     recognition.onnomatch = () => {
@@ -661,7 +666,9 @@ export default function App() {
     recognition.onerror = (e) => {
       setVoiceListening(false);
       setVoiceStatus("");
-      setVoiceResult({ original: "", translated: `❌ Error micrófono: ${e.error}. Verificá permisos en Configuración.` });
+      if (e.error !== "aborted") {
+        setVoiceResult({ original: "", translated: `❌ Error: ${e.error}. Verificá permisos del micrófono.` });
+      }
     };
     recognition.onend = () => setVoiceListening(false);
     recognition.start();
@@ -1075,12 +1082,12 @@ export default function App() {
           <button
             onClick={toggleListening}
             style={{ width: 80, height: 80, borderRadius: "50%", border: "none", background: voiceListening ? "linear-gradient(135deg, #e53935, #c62828)" : "linear-gradient(135deg, #3949AB, #5C6BC0)", cursor: "pointer", fontSize: 32, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 10px", boxShadow: voiceListening ? "0 0 0 14px rgba(229,57,53,0.3)" : "0 4px 15px rgba(0,0,0,0.3)", transition: "all 0.2s" }}>
-            {voiceListening ? "⏹️" : "🎤"}
+            {voiceListening ? "🎤" : "🎤"}
           </button>
           <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, fontFamily: "Arial", marginBottom: 12 }}>
             {voiceListening
-              ? { en: "Listening… tap ⏹ to stop", es: "Escuchando… toca ⏹ para parar", fr: "Écoute… appuie ⏹ pour arrêter" }[lang]
-              : { en: "Tap 🎤 to speak", es: "Toca 🎤 para hablar", fr: "Appuie 🎤 pour parler" }[lang]}
+              ? { en: "Listening… speak then pause ✋", es: "Escuchando… hablá y hacé pausa ✋", fr: "Écoute… parle puis pause ✋" }[lang]
+              : { en: "Tap to speak", es: "Toca para hablar", fr: "Appuie pour parler" }[lang]}
           </div>
 
           {/* Status / translating indicator */}
