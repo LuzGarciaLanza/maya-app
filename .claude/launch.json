@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "maya-app",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["/tmp/maya-start.sh"],
+      "port": 3000
+    }
+  ]
+}

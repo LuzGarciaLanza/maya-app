@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import MyStay from "./MyStay";
 
 function renderMarkdown(text) {
   const lines = text.split("\n");
@@ -545,6 +546,8 @@ export default function App() {
   const [freeCount, setFreeCount] = useState(() => parseInt(localStorage.getItem('maya_free') || '0'));
   const [hasAccess, setHasAccess] = useState(() => localStorage.getItem('maya_access') === 'true');
   const [showPaywall, setShowPaywall] = useState(false);
+  const [hostData, setHostData] = useState(null);
+  const [hostLoading, setHostLoading] = useState(false);
   const bottomRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -567,6 +570,33 @@ export default function App() {
   }, [screen, lang]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+
+  // ── MY STAY: read ?host= from URL and fetch host data ─────────────────────
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const codeFromUrl = params.get("host");
+    if (codeFromUrl) {
+      localStorage.setItem("maya_host_code", codeFromUrl);
+      // Activate host-premium access if applicable (set from API response)
+    }
+    const savedCode = codeFromUrl || localStorage.getItem("maya_host_code");
+    if (!savedCode) return;
+    setHostLoading(true);
+    fetch(`/api/host-property?code=${savedCode}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && data.host_code) {
+          setHostData(data);
+          // Host premium: give guest unlimited access
+          if (data.plan_expires_at && new Date(data.plan_expires_at) > new Date()) {
+            localStorage.setItem("maya_access", "true");
+            setHasAccess(true);
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setHostLoading(false));
+  }, []);
 
   async function sendToAPI(msgs) {
     setLoading(true);
@@ -785,6 +815,15 @@ export default function App() {
     await sendToAPI(newMsgs);
   }
 
+  // ── MY STAY SCREEN ────────────────────────────────────────
+  if (screen === "mystay") return (
+    <MyStay
+      hostData={hostData}
+      lang={lang}
+      onBack={() => setScreen("landing")}
+    />
+  );
+
   // ── DEALS SCREEN ──────────────────────────────────────────
   if (screen === "deals") return (
     <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: "#0a1628", fontFamily: "'Georgia', serif", color: "white", maxWidth: 700, margin: "0 auto" }}>
@@ -976,6 +1015,37 @@ export default function App() {
 
         {/* Category grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {/* My Stay — solo aparece si hay un host_code guardado */}
+          {hostData && (
+            <button onClick={() => setScreen("mystay")}
+              style={{
+                background: "linear-gradient(135deg, rgba(0,137,123,0.25), rgba(0,172,193,0.15))",
+                border: "1.5px solid rgba(0,172,193,0.55)",
+                borderRadius: 16, color: "white", padding: "14px 6px 12px", cursor: "pointer",
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                position: "relative", overflow: "hidden",
+              }}>
+              <div style={{
+                position: "absolute", top: 5, right: 6,
+                background: "#FF6B35", borderRadius: 20, padding: "1px 6px",
+                fontSize: 8, fontWeight: 700, color: "white", letterSpacing: 0.5,
+              }}>HOST</div>
+              <span style={{ fontSize: 26 }}>🏠</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#4DD9E8", textAlign: "center", lineHeight: 1.2 }}>
+                {{ en: "My Stay", es: "Mi Estadía", fr: "Mon Séjour" }[lang]}
+              </span>
+            </button>
+          )}
+          {hostLoading && (
+            <div style={{
+              background: "rgba(0,172,193,0.07)", border: "1px solid rgba(0,172,193,0.2)",
+              borderRadius: 16, padding: "14px 6px 12px",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+            }}>
+              <span style={{ fontSize: 22 }}>🏠</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>…</span>
+            </div>
+          )}
           {gridCats.map((cat, i) => {
             const c = catColors[i % catColors.length];
             return (
