@@ -1,7 +1,59 @@
 // MyStay.jsx — Guest view of host's property info
+import { useState } from "react";
+
+const TEXT_FIELDS = [
+  "property_name","floor_unit","checkin_time","checkout_time","door_code",
+  "access_instructions","exact_address","parking_info","wifi_name","wifi_password",
+  "ac_instructions","boiler_instructions","washer_instructions","trash_info",
+  "house_rules","emergency_contact","nearest_supermarket","nearest_pharmacy",
+  "nearest_hospital","nearest_atm","recommended_restaurant","how_to_centro",
+  "how_to_beach","trusted_taxi","host_recommendations","tours_info","extra_notes",
+];
 
 export default function MyStay({ hostData, onBack, lang }) {
+  const [translating, setTranslating] = useState(false);
+  const [translated, setTranslated]   = useState(null); // null = show original
+
   if (!hostData) return null;
+
+  const data = translated || hostData; // show translated if available
+
+  const langName = { en: "English", es: "español", fr: "français" }[lang] || "English";
+
+  async function translateContent() {
+    setTranslating(true);
+    try {
+      // Build a compact object with only filled text fields
+      const toTranslate = {};
+      TEXT_FIELDS.forEach(k => { if (hostData[k]) toTranslate[k] = hostData[k]; });
+
+      const prompt = `Translate the following JSON property info fields to ${langName}.
+Return ONLY a valid JSON object with the same keys and translated values. No extra text.
+${JSON.stringify(toTranslate)}`;
+
+      const res = await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-opus-4-5",
+          max_tokens: 2000,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const result = await res.json();
+      const raw = result?.content?.[0]?.text || "";
+      // Extract JSON from response
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setTranslated({ ...hostData, ...parsed });
+      }
+    } catch (e) {
+      // silent fail — keep original
+    } finally {
+      setTranslating(false);
+    }
+  }
 
   const t = {
     back: { en: "Back", es: "Volver", fr: "Retour" }[lang] || "Back",
@@ -13,61 +65,61 @@ export default function MyStay({ hostData, onBack, lang }) {
       emoji: "🔑",
       title: { en: "Check-in & Access", es: "Check-in & Acceso", fr: "Arrivée & Accès" }[lang],
       items: [
-        { label: { en: "Check-in", es: "Check-in", fr: "Arrivée" }[lang], value: hostData.checkin_time },
-        { label: { en: "Check-out", es: "Check-out", fr: "Départ" }[lang], value: hostData.checkout_time },
-        { label: { en: "Door code", es: "Código de puerta", fr: "Code d'entrée" }[lang], value: hostData.door_code, mono: true },
-        { label: { en: "How to get in", es: "Cómo entrar", fr: "Comment entrer" }[lang], value: hostData.access_instructions },
-        { label: { en: "Address", es: "Dirección", fr: "Adresse" }[lang], value: hostData.exact_address },
-        { label: { en: "Parking", es: "Estacionamiento", fr: "Stationnement" }[lang], value: hostData.parking_info },
+        { label: { en: "Check-in", es: "Check-in", fr: "Arrivée" }[lang], value: data.checkin_time },
+        { label: { en: "Check-out", es: "Check-out", fr: "Départ" }[lang], value: data.checkout_time },
+        { label: { en: "Door code", es: "Código de puerta", fr: "Code d'entrée" }[lang], value: data.door_code, mono: true },
+        { label: { en: "How to get in", es: "Cómo entrar", fr: "Comment entrer" }[lang], value: data.access_instructions },
+        { label: { en: "Address", es: "Dirección", fr: "Adresse" }[lang], value: data.exact_address },
+        { label: { en: "Parking", es: "Estacionamiento", fr: "Stationnement" }[lang], value: data.parking_info },
       ],
     },
     {
       emoji: "📶",
       title: "WiFi",
       items: [
-        { label: { en: "Network", es: "Red", fr: "Réseau" }[lang], value: hostData.wifi_name, mono: true, highlight: true },
-        { label: { en: "Password", es: "Contraseña", fr: "Mot de passe" }[lang], value: hostData.wifi_password, mono: true, highlight: true },
+        { label: { en: "Network", es: "Red", fr: "Réseau" }[lang], value: data.wifi_name, mono: true, highlight: true },
+        { label: { en: "Password", es: "Contraseña", fr: "Mot de passe" }[lang], value: data.wifi_password, mono: true, highlight: true },
       ],
     },
     {
       emoji: "🏠",
       title: { en: "The Property", es: "La Propiedad", fr: "Le Logement" }[lang],
       items: [
-        { label: { en: "Floor / Unit", es: "Piso / Unidad", fr: "Étage / Unité" }[lang], value: hostData.floor_unit },
-        { label: { en: "A/C", es: "Aire acondicionado", fr: "Climatisation" }[lang], value: hostData.ac_instructions },
-        { label: { en: "Hot water", es: "Agua caliente", fr: "Eau chaude" }[lang], value: hostData.boiler_instructions },
-        { label: { en: "Washer", es: "Lavadora", fr: "Machine à laver" }[lang], value: hostData.washer_instructions },
-        { label: { en: "Trash", es: "Basura", fr: "Poubelle" }[lang], value: hostData.trash_info },
-        { label: { en: "House rules", es: "Reglas", fr: "Règles" }[lang], value: hostData.house_rules },
+        { label: { en: "Floor / Unit", es: "Piso / Unidad", fr: "Étage / Unité" }[lang], value: data.floor_unit },
+        { label: { en: "A/C", es: "Aire acondicionado", fr: "Climatisation" }[lang], value: data.ac_instructions },
+        { label: { en: "Hot water", es: "Agua caliente", fr: "Eau chaude" }[lang], value: data.boiler_instructions },
+        { label: { en: "Washer", es: "Lavadora", fr: "Machine à laver" }[lang], value: data.washer_instructions },
+        { label: { en: "Trash", es: "Basura", fr: "Poubelle" }[lang], value: data.trash_info },
+        { label: { en: "House rules", es: "Reglas", fr: "Règles" }[lang], value: data.house_rules },
       ],
     },
     {
       emoji: "🛒",
       title: { en: "Nearby services", es: "Servicios cercanos", fr: "Services proches" }[lang],
       items: [
-        { label: { en: "Supermarket", es: "Supermercado", fr: "Supermarché" }[lang], value: hostData.nearest_supermarket },
-        { label: { en: "Pharmacy", es: "Farmacia", fr: "Pharmacie" }[lang], value: hostData.nearest_pharmacy },
-        { label: { en: "Hospital", es: "Hospital", fr: "Hôpital" }[lang], value: hostData.nearest_hospital },
-        { label: { en: "ATM", es: "Cajero ATM", fr: "Distributeur" }[lang], value: hostData.nearest_atm },
-        { label: { en: "Host's pick", es: "Restaurante recomendado", fr: "Resto du host" }[lang], value: hostData.recommended_restaurant },
+        { label: { en: "Supermarket", es: "Supermercado", fr: "Supermarché" }[lang], value: data.nearest_supermarket },
+        { label: { en: "Pharmacy", es: "Farmacia", fr: "Pharmacie" }[lang], value: data.nearest_pharmacy },
+        { label: { en: "Hospital", es: "Hospital", fr: "Hôpital" }[lang], value: data.nearest_hospital },
+        { label: { en: "ATM", es: "Cajero ATM", fr: "Distributeur" }[lang], value: data.nearest_atm },
+        { label: { en: "Host's pick", es: "Restaurante recomendado", fr: "Resto du host" }[lang], value: data.recommended_restaurant },
       ],
     },
     {
       emoji: "🚕",
       title: { en: "Transport", es: "Transporte", fr: "Transport" }[lang],
       items: [
-        { label: { en: "To the center", es: "Al centro", fr: "Au centre" }[lang], value: hostData.how_to_centro },
-        { label: { en: "To the beach", es: "A la playa", fr: "À la plage" }[lang], value: hostData.how_to_beach },
-        { label: { en: "Trusted taxi", es: "Taxi de confianza", fr: "Taxi fiable" }[lang], value: hostData.trusted_taxi },
+        { label: { en: "To the center", es: "Al centro", fr: "Au centre" }[lang], value: data.how_to_centro },
+        { label: { en: "To the beach", es: "A la playa", fr: "À la plage" }[lang], value: data.how_to_beach },
+        { label: { en: "Trusted taxi", es: "Taxi de confianza", fr: "Taxi fiable" }[lang], value: data.trusted_taxi },
       ],
     },
     {
       emoji: "⭐",
       title: { en: "Host's recommendations", es: "Recomendaciones del host", fr: "Recommandations du host" }[lang],
       items: [
-        { label: { en: "Favorites", es: "Mis favoritos", fr: "Mes favoris" }[lang], value: hostData.host_recommendations },
-        { label: { en: "Tours", es: "Tours recomendados", fr: "Tours recommandés" }[lang], value: hostData.tours_info },
-        { label: { en: "Extra tips", es: "Otros datos", fr: "Autres infos" }[lang], value: hostData.extra_notes },
+        { label: { en: "Favorites", es: "Mis favoritos", fr: "Mes favoris" }[lang], value: data.host_recommendations },
+        { label: { en: "Tours", es: "Tours recomendados", fr: "Tours recommandés" }[lang], value: data.tours_info },
+        { label: { en: "Extra tips", es: "Otros datos", fr: "Autres infos" }[lang], value: data.extra_notes },
       ],
     },
   ];
@@ -95,6 +147,23 @@ export default function MyStay({ hostData, onBack, lang }) {
           ← {t.back}
         </button>
 
+        {/* Translate button — top right */}
+        {lang !== "es" && (
+          <button
+            onClick={translated ? () => setTranslated(null) : translateContent}
+            disabled={translating}
+            style={{
+              position: "absolute", top: 48, right: 16,
+              background: translated ? "rgba(0,172,193,0.25)" : "rgba(255,255,255,0.12)",
+              border: `1px solid ${translated ? "rgba(0,172,193,0.5)" : "rgba(255,255,255,0.2)"}`,
+              borderRadius: 20, color: translated ? "#4DD9E8" : "white",
+              padding: "5px 12px", fontSize: 11, fontWeight: 600,
+              cursor: "pointer", fontFamily: "'Poppins',sans-serif",
+            }}>
+            {translating ? "⏳" : translated ? "✓ " + langName : "🌐 " + langName}
+          </button>
+        )}
+
         <div style={{ textAlign: "center", paddingTop: 8 }}>
           <div style={{ fontSize: 11, color: "#00ACC1", letterSpacing: 3, fontWeight: 700, marginBottom: 6 }}>
             🏠 MY STAY
@@ -103,18 +172,18 @@ export default function MyStay({ hostData, onBack, lang }) {
             fontSize: 24, fontWeight: 900, color: "white", marginBottom: 4,
             lineHeight: 1.2,
           }}>
-            {hostData.property_name || "Tu alojamiento"}
+            {data.property_name || "Tu alojamiento"}
           </h1>
-          {hostData.floor_unit && (
+          {data.floor_unit && (
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
-              {hostData.floor_unit}
+              {data.floor_unit}
             </div>
           )}
         </div>
       </div>
 
       {/* Emergency contact — always visible at top */}
-      {hostData.emergency_contact && (
+      {data.emergency_contact && (
         <div style={{
           margin: "14px 14px 0",
           background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.3)",
@@ -127,7 +196,7 @@ export default function MyStay({ hostData, onBack, lang }) {
               {{ en: "EMERGENCY CONTACT", es: "EMERGENCIAS", fr: "URGENCES" }[lang]}
             </div>
             <div style={{ fontSize: 13, color: "white", fontWeight: 600 }}>
-              {hostData.emergency_contact}
+              {data.emergency_contact}
             </div>
           </div>
         </div>
