@@ -10,46 +10,54 @@ const TEXT_FIELDS = [
   "how_to_beach","trusted_taxi","host_recommendations","tours_info","extra_notes",
 ];
 
+const LANG_NAMES = { en: "English", es: "Español", fr: "Français" };
+
 export default function MyStay({ hostData, onBack, lang }) {
+  // viewLang: which language is currently shown (starts with app lang)
+  const [viewLang, setViewLang]       = useState(lang);
   const [translating, setTranslating] = useState(false);
-  const [translated, setTranslated]   = useState(null); // null = show original
+  // cache: { en: {...}, fr: {...} } — avoids re-calling API
+  const [cache, setCache]             = useState({ es: hostData });
 
   if (!hostData) return null;
 
-  const data = translated || hostData; // show translated if available
+  const data = cache[viewLang] || hostData;
 
-  const langName = { en: "English", es: "español", fr: "français" }[lang] || "English";
+  async function switchLang(targetLang) {
+    // ES is always the original — no API call needed
+    if (targetLang === "es") { setViewLang("es"); return; }
+    // Already cached
+    if (cache[targetLang]) { setViewLang(targetLang); return; }
 
-  async function translateContent() {
     setTranslating(true);
     try {
-      // Build a compact object with only filled text fields
       const toTranslate = {};
       TEXT_FIELDS.forEach(k => { if (hostData[k]) toTranslate[k] = hostData[k]; });
 
-      const prompt = `Translate the following JSON property info fields to ${langName}.
-Return ONLY a valid JSON object with the same keys and translated values. No extra text.
+      const prompt = `Translate the following JSON property information to ${LANG_NAMES[targetLang]}.
+Return ONLY a valid JSON object with the exact same keys and translated values. No explanation, no markdown, just the JSON.
 ${JSON.stringify(toTranslate)}`;
 
       const res = await fetch("/api/claude", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-opus-4-5",
+          model: "claude-sonnet-4-5",
           max_tokens: 2000,
           messages: [{ role: "user", content: prompt }],
         }),
       });
       const result = await res.json();
       const raw = result?.content?.[0]?.text || "";
-      // Extract JSON from response
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        setTranslated({ ...hostData, ...parsed });
+        const translated = { ...hostData, ...parsed };
+        setCache(c => ({ ...c, [targetLang]: translated }));
+        setViewLang(targetLang);
       }
     } catch (e) {
-      // silent fail — keep original
+      // silent fail — stay on current lang
     } finally {
       setTranslating(false);
     }
@@ -147,22 +155,29 @@ ${JSON.stringify(toTranslate)}`;
           ← {t.back}
         </button>
 
-        {/* Translate button — top right */}
-        {lang !== "es" && (
-          <button
-            onClick={translated ? () => setTranslated(null) : translateContent}
-            disabled={translating}
-            style={{
-              position: "absolute", top: 48, right: 16,
-              background: translated ? "rgba(0,172,193,0.25)" : "rgba(255,255,255,0.12)",
-              border: `1px solid ${translated ? "rgba(0,172,193,0.5)" : "rgba(255,255,255,0.2)"}`,
-              borderRadius: 20, color: translated ? "#4DD9E8" : "white",
-              padding: "5px 12px", fontSize: 11, fontWeight: 600,
-              cursor: "pointer", fontFamily: "'Poppins',sans-serif",
-            }}>
-            {translating ? "⏳" : translated ? "✓ " + langName : "🌐 " + langName}
-          </button>
-        )}
+        {/* Language pills — always visible */}
+        <div style={{
+          position: "absolute", top: 48, right: 16,
+          display: "flex", gap: 5,
+        }}>
+          {["en","es","fr"].map(l => {
+            const isActive = viewLang === l;
+            const isLoading = translating && l !== viewLang && l !== "es";
+            return (
+              <button key={l} onClick={() => !translating && switchLang(l)}
+                style={{
+                  background: isActive ? "#FF6B35" : "rgba(255,255,255,0.1)",
+                  border: `1px solid ${isActive ? "#FF6B35" : "rgba(255,255,255,0.18)"}`,
+                  borderRadius: 20, color: isActive ? "white" : "rgba(255,255,255,0.55)",
+                  padding: "4px 10px", fontSize: 10, fontWeight: 700,
+                  cursor: translating ? "wait" : "pointer",
+                  fontFamily: "'Poppins',sans-serif", letterSpacing: 0.5,
+                }}>
+                {translating && !isActive && l !== "es" ? "⏳" : l.toUpperCase()}
+              </button>
+            );
+          })}
+        </div>
 
         <div style={{ textAlign: "center", paddingTop: 8 }}>
           <div style={{ fontSize: 11, color: "#00ACC1", letterSpacing: 3, fontWeight: 700, marginBottom: 6 }}>
