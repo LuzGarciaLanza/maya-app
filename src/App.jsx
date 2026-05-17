@@ -550,6 +550,8 @@ export default function App() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [hostData, setHostData] = useState(null);
   const [hostLoading, setHostLoading] = useState(false);
+  const [dbPartners, setDbPartners] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("all");
   const bottomRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -572,6 +574,15 @@ export default function App() {
   }, [screen, lang]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+
+  // ── PARTNERS: fetch from Supabase when deals screen opens ─────────────────
+  useEffect(() => {
+    if (screen !== "deals") return;
+    fetch("/api/partner?active=1")
+      .then(r => r.ok ? r.json() : [])
+      .then(data => { if (Array.isArray(data)) setDbPartners(data); })
+      .catch(() => {});
+  }, [screen]);
 
   // ── MY STAY: read ?host= from URL and fetch host data ─────────────────────
   useEffect(() => {
@@ -850,9 +861,91 @@ export default function App() {
         </span>
       </div>
 
+      {/* Category filter pills */}
+      {(() => {
+        const cats = [
+          { id: "all",         emoji: "🎫", en: "All",                  es: "Todos",               fr: "Tous" },
+          { id: "food",        emoji: "🍽",  en: "Food & Drinks",        es: "Comida",              fr: "Restauration" },
+          { id: "tours",       emoji: "🤿",  en: "Tours",                es: "Tours",               fr: "Excursions" },
+          { id: "wellness",    emoji: "💆",  en: "Wellness",             es: "Bienestar",           fr: "Bien-être" },
+          { id: "dental",      emoji: "🦷",  en: "Dental",               es: "Dental",              fr: "Dentaire" },
+          { id: "shopping",    emoji: "🛍",  en: "Shopping",             es: "Compras",             fr: "Shopping" },
+          { id: "hotels",      emoji: "🏨",  en: "Hotels",               es: "Hoteles",             fr: "Hôtels" },
+          { id: "transport",   emoji: "🚕",  en: "Transport",            es: "Transporte",          fr: "Transport" },
+          { id: "experiences", emoji: "📸",  en: "Experiences",          es: "Experiencias",        fr: "Expériences" },
+        ];
+        return (
+          <div style={{ display: "flex", gap: 7, overflowX: "auto", padding: "10px 12px 6px", scrollbarWidth: "none" }}>
+            {cats.map(cat => (
+              <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                style={{ background: activeCategory === cat.id ? "rgba(255,213,79,0.2)" : "rgba(255,255,255,0.06)", border: `1px solid ${activeCategory === cat.id ? "rgba(255,213,79,0.6)" : "rgba(255,255,255,0.1)"}`, borderRadius: 20, color: activeCategory === cat.id ? "#FFD54F" : "rgba(255,255,255,0.5)", padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "Arial", flexShrink: 0 }}>
+                {cat.emoji} {cat[lang]}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Deals list */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px" }}>
-        {DEALS.map(deal => {
+      <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
+        {/* DB Partners */}
+        {dbPartners
+          .filter(p => activeCategory === "all" || p.category === activeCategory)
+          .map(partner => {
+            const pid = `db_${partner.partner_code}`;
+            const desc = partner[`description_${lang}`] || partner.description_es || "";
+            const discount = partner[`discount_${lang}`] || partner.discount_es || "";
+            const savings = partner[`savings_${lang}`] || partner.savings_es || "";
+            const redeem = partner[`how_to_redeem_${lang}`] || partner.how_to_redeem_es || "";
+            const uniqueCode = dealCodes[pid] || partner.deal_code || "";
+            return (
+              <div key={pid} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, marginBottom: 12, overflow: "hidden" }}>
+                <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => setExpandedDeal(expandedDeal === pid ? null : pid)}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <span style={{ background: partner.color || "#00897B", borderRadius: 20, padding: "2px 10px", fontSize: 10, color: "white", fontFamily: "Arial" }}>{partner.emoji || "🏪"} {partner.category}</span>
+                        {partner.is_featured && <span style={{ background: "rgba(255,213,79,0.2)", border: "1px solid rgba(255,213,79,0.4)", borderRadius: 20, padding: "2px 8px", fontSize: 9, color: "#FFD54F", fontFamily: "Arial" }}>⭐ FEATURED</span>}
+                      </div>
+                      <div style={{ fontWeight: "bold", fontSize: 15, color: "white", marginBottom: 4 }}>{partner.business_name}</div>
+                      <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", fontFamily: "Arial", lineHeight: 1.5 }}>{desc}</div>
+                    </div>
+                    {savings && (
+                      <div style={{ background: `${partner.color || "#00897B"}33`, border: `1px solid ${partner.color || "#00897B"}66`, borderRadius: 10, padding: "6px 10px", textAlign: "center", flexShrink: 0 }}>
+                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", fontFamily: "Arial", marginBottom: 2 }}>{tText.saving}</div>
+                        <div style={{ fontSize: 12, fontWeight: "bold", color: "white", fontFamily: "Arial" }}>{savings}</div>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ marginTop: 10, background: `${partner.color || "#00897B"}22`, border: `1px solid ${partner.color || "#00897B"}44`, borderRadius: 8, padding: "8px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ fontSize: 13, color: "white", fontFamily: "Arial", fontWeight: "bold" }}>🎁 {discount}</div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontFamily: "Arial" }}>{expandedDeal === pid ? "▲" : "▼"}</div>
+                  </div>
+                </div>
+                {expandedDeal === pid && (
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px" }}>
+                    {uniqueCode && (
+                      <div style={{ background: "rgba(255,213,79,0.1)", border: "1px solid rgba(255,213,79,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
+                        <div style={{ fontSize: 10, color: "#FFD54F", fontFamily: "Arial", fontWeight: 700, marginBottom: 4 }}>{tText.yourCode}</div>
+                        <div style={{ fontSize: 18, fontWeight: "bold", color: "white", fontFamily: "monospace", letterSpacing: 2 }}>{uniqueCode}</div>
+                      </div>
+                    )}
+                    {redeem && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontFamily: "Arial", lineHeight: 1.6, marginBottom: 12 }}>{redeem}</div>}
+                    {partner.address && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "Arial", marginBottom: 12 }}>📍 {partner.address}</div>}
+                    {partner.whatsapp && (
+                      <button onClick={() => openWhatsApp(partner.whatsapp, `Hola! Vengo de Maya app con el código ${uniqueCode || partner.deal_code} 🌴`)}
+                        style={{ width: "100%", background: "linear-gradient(135deg, #25D366, #128C7E)", border: "none", borderRadius: 12, color: "white", padding: "12px", fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
+                        📱 {tText.bookWhatsApp}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+        {/* Hardcoded DEALS */}
+        {DEALS.filter(deal => activeCategory === "all").map(deal => {
           const uniqueCode = dealCodes[deal.id] || deal.code;
           const uniqueMessage = deal.preMessage[lang].replace(deal.code, uniqueCode);
           return (
