@@ -75,10 +75,16 @@ module.exports = async function handler(req, res) {
     const partner_code = generatePartnerCode(body.business_name);
 
     const { _admin_secret, ...rest } = body;
+
+    // Clean empty strings → null so Postgres type-checks pass (e.g. date fields)
+    const cleaned = Object.fromEntries(
+      Object.entries(rest).map(([k, v]) => [k, v === "" ? null : v])
+    );
+
     const payload = {
-      ...rest,
+      ...cleaned,
       partner_code,
-      is_active: isAdmin ? true : false, // admin → live immediately
+      is_active: isAdmin ? true : false,
       is_featured: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -103,7 +109,12 @@ module.exports = async function handler(req, res) {
       delete fields.is_active;
     }
 
-    const payload = { ...fields, updated_at: new Date().toISOString() };
+    // Clean empty strings → null
+    const cleanedFields = Object.fromEntries(
+      Object.entries(fields).map(([k, v]) => [k, v === "" ? null : v])
+    );
+
+    const payload = { ...cleanedFields, updated_at: new Date().toISOString() };
     const r = await sbFetch(
       `partners?partner_code=eq.${partner_code}`,
       { method: "PATCH", body: JSON.stringify(payload) },

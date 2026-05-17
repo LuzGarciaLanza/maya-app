@@ -139,7 +139,7 @@ export default function PartnerSetup() {
           body: JSON.stringify({ ...data, ...(isAdmin ? { _admin_secret: ADMIN_SECRET } : {}) }),
         });
         const row = await r.json();
-        if (!r.ok) throw new Error(row.error || "Error al guardar");
+        if (!r.ok) throw new Error(row.error || row.message || JSON.stringify(row) || "Error al guardar");
         setPartnerCode(row.partner_code);
         localStorage.setItem(STORAGE_KEY, row.partner_code);
       } else {
@@ -148,7 +148,7 @@ export default function PartnerSetup() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...data, partner_code: partnerCode }),
         });
-        if (!r.ok) { const e = await r.json(); throw new Error(e.error || "Error"); }
+        if (!r.ok) { const e = await r.json(); throw new Error(e.error || e.message || JSON.stringify(e) || "Error"); }
       }
       setSaved(true);
       if (nextStep) setStep(nextStep);
