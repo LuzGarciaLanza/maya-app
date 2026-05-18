@@ -15,7 +15,7 @@ const CATEGORIES = [
 ];
 
 const EMPTY = {
-  business_name: "", category: "", address: "", whatsapp: "",
+  business_name: "", category: "", address: "", whatsapp: "52",
   contact_name: "", contact_email: "",
   discount_es: "", description_es: "", savings_es: "", how_to_redeem_es: "",
   discount_en: "", description_en: "", savings_en: "", how_to_redeem_en: "",
@@ -47,12 +47,12 @@ const S = {
   btnTeal: { flex: 1, background: "rgba(0,172,193,0.15)", border: "1px solid rgba(0,172,193,0.35)", borderRadius: 14, color: "#00ACC1", fontFamily: "'Poppins',sans-serif", fontSize: 14, fontWeight: 600, padding: "13px", cursor: "pointer" },
 };
 
-function Field({ label, name, value, onChange, placeholder, type = "text", hint }) {
+function Field({ label, name, value, onChange, placeholder, type = "text", hint, autoComplete }) {
   return (
     <div>
       <label style={S.label}>{label}</label>
       {hint && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 5, marginTop: -4 }}>{hint}</div>}
-      <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder} style={S.input} />
+      <input type={type} name={name} value={value} onChange={onChange} placeholder={placeholder} style={S.input} autoComplete={autoComplete || "on"} />
     </div>
   );
 }
@@ -240,7 +240,7 @@ export default function PartnerSetup() {
       </div>
       <div style={S.section}>
         <div style={S.sectionTitle}>📱 Contacto</div>
-        <Field label="WhatsApp de reservas (con código de país)" name="whatsapp" value={data.whatsapp} onChange={handleChange} placeholder="529841234567" />
+        <Field label="WhatsApp de reservas" name="whatsapp" value={data.whatsapp} onChange={handleChange} placeholder="529841234567" hint="Código de país + número. México: 52 + 10 dígitos" autoComplete="off" />
         <Field label="Tu nombre" name="contact_name" value={data.contact_name} onChange={handleChange} placeholder="Nombre del responsable" />
         <Field label="Email (interno, no visible al turista)" name="contact_email" value={data.contact_email} onChange={handleChange} placeholder="email@negocio.com" type="email" />
       </div>
