@@ -31,6 +31,14 @@ function emojiForCategory(catId) {
   const cat = CATEGORIES.find(c => c.id === catId);
   return cat ? cat.emoji : "🏪";
 }
+function generateDealCode(businessName) {
+  const slug = (businessName || "negocio")
+    .toUpperCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "") // remove accents
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+  return `MAYA-${slug}`;
+}
 
 const S = {
   wrap: { minHeight: "100vh", background: "#012A2A", fontFamily: "'Poppins', sans-serif", color: "white", paddingBottom: 60 },
@@ -130,11 +138,16 @@ export default function PartnerSetup() {
   const saveStep = useCallback(async (nextStep) => {
     setSaving(true); setError(null);
     try {
+      // Auto-generate deal_code from business name if not set
+      const dealCode = data.deal_code || generateDealCode(data.business_name);
+      const dataToSave = { ...data, deal_code: dealCode };
+      if (!data.deal_code) setData(d => ({ ...d, deal_code: dealCode }));
+
       if (!partnerCode) {
         const r = await fetch("/api/partner", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, ...(isAdmin ? { _admin_secret: ADMIN_SECRET } : {}) }),
+          body: JSON.stringify({ ...dataToSave, ...(isAdmin ? { _admin_secret: ADMIN_SECRET } : {}) }),
         });
         const row = await r.json();
         if (!r.ok) throw new Error(row.error || row.message || JSON.stringify(row) || "Error al guardar");
@@ -144,7 +157,7 @@ export default function PartnerSetup() {
         const r = await fetch("/api/partner", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, partner_code: partnerCode }),
+          body: JSON.stringify({ ...dataToSave, partner_code: partnerCode }),
         });
         if (!r.ok) { const e = await r.json(); throw new Error(e.error || e.message || JSON.stringify(e) || "Error"); }
       }
@@ -251,18 +264,20 @@ export default function PartnerSetup() {
     <>
       <div style={S.section}>
         <div style={S.sectionTitle}>🎁 El descuento (en español)</div>
-        <Field label="Código de descuento" name="deal_code" value={data.deal_code} onChange={handleChange} placeholder="MAYA-FOGON" hint="El turista presenta este código para obtener el descuento" />
-        <TextArea label="¿Qué descuento ofrecés? *" name="discount_es" value={data.discount_es} onChange={handleChange} placeholder="15% de descuento en toda la carta" />
-        <TextArea label="Descripción del negocio" name="description_es" value={data.description_es} onChange={handleChange} placeholder="Tacos al pastor en comal de leña, ambiente local, precio justo..." />
-        <div style={S.row}>
-          <div style={{ flex: 1 }}>
-            <Field label="¿Cuánto ahorra el turista?" name="savings_es" value={data.savings_es} onChange={handleChange} placeholder="Ahorra $200-400 MXN" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <Field label="Válido hasta (opcional)" name="valid_until" value={data.valid_until} onChange={handleChange} type="date" />
+
+        {/* Deal code — auto-generated, read only */}
+        <div style={{ marginBottom: 14 }}>
+          <label style={S.label}>Código de canje (auto-generado)</label>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>El turista menciona este código para obtener el descuento</div>
+          <div style={{ background: "rgba(0,172,193,0.1)", border: "1px solid rgba(0,172,193,0.3)", borderRadius: 10, padding: "11px 14px", fontFamily: "monospace", fontSize: 15, fontWeight: 700, color: "#4DD9E8", letterSpacing: 1 }}>
+            {data.deal_code || generateDealCode(data.business_name)}
           </div>
         </div>
-        <TextArea label="¿Cómo canjear?" name="how_to_redeem_es" value={data.how_to_redeem_es} onChange={handleChange} placeholder="Mencioná el código MAYA-FOGON al pedir la cuenta" />
+
+        <TextArea label="¿Qué descuento ofrecés? *" name="discount_es" value={data.discount_es} onChange={handleChange} placeholder="15% de descuento en toda la carta" />
+        <TextArea label="Descripción del negocio" name="description_es" value={data.description_es} onChange={handleChange} placeholder="Tacos al pastor en comal de leña, ambiente local, precio justo..." />
+        <Field label="Válido hasta (opcional)" name="valid_until" value={data.valid_until} onChange={handleChange} type="date" />
+        <TextArea label="¿Cómo canjear?" name="how_to_redeem_es" value={data.how_to_redeem_es} onChange={handleChange} placeholder="Mencioná el código MAYA-LUZ al pedir la cuenta" />
       </div>
 
       <div style={S.section}>
@@ -287,13 +302,11 @@ export default function PartnerSetup() {
           <div style={S.sectionTitle}>EN — English</div>
           <TextArea label="Discount" name="discount_en" value={data.discount_en} onChange={handleChange} placeholder="15% off entire menu" />
           <TextArea label="Description" name="description_en" value={data.description_en} onChange={handleChange} placeholder="" />
-          <Field label="Savings" name="savings_en" value={data.savings_en} onChange={handleChange} placeholder="Save $15-30 USD" />
           <TextArea label="How to redeem" name="how_to_redeem_en" value={data.how_to_redeem_en} onChange={handleChange} placeholder="" />
 
           <div style={S.sectionTitle}>FR — Français</div>
           <TextArea label="Réduction" name="discount_fr" value={data.discount_fr} onChange={handleChange} placeholder="15% sur toute la carte" />
           <TextArea label="Description" name="description_fr" value={data.description_fr} onChange={handleChange} placeholder="" />
-          <Field label="Économies" name="savings_fr" value={data.savings_fr} onChange={handleChange} placeholder="Économise 15-30 USD" />
           <TextArea label="Comment utiliser" name="how_to_redeem_fr" value={data.how_to_redeem_fr} onChange={handleChange} placeholder="" />
         </div>
       )}
