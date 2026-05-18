@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import MyStay from "./MyStay";
+import { QRCodeSVG } from "qrcode.react";
 
 function renderMarkdown(text) {
   const lines = text.split("\n");
@@ -797,6 +798,31 @@ export default function App() {
     } catch (e) { /* silent fail — code still works locally */ }
   }
 
+  async function getOrCreateCodeForPartner(partner) {
+    const pid = `db_${partner.partner_code}`;
+    const stored = JSON.parse(localStorage.getItem('maya_deal_codes') || '{}');
+    if (stored[pid]) { setDealCodes({ ...stored }); return; }
+    const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const baseCode = partner.deal_code || `MAYA-${partner.partner_code}`;
+    const newCode = `${baseCode}-${suffix}`;
+    stored[pid] = newCode;
+    localStorage.setItem('maya_deal_codes', JSON.stringify(stored));
+    setDealCodes({ ...stored });
+    try {
+      await fetch('/api/generate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: newCode,
+          partner_name: partner.business_name,
+          business_type: partner.category,
+          deal_id: partner.partner_code,
+          lang,
+        })
+      });
+    } catch (e) { /* silent */ }
+  }
+
   async function sendMessage(text) {
     const txt = text || input.trim();
     if ((!txt && !imageBase64) || loading) return;
@@ -900,7 +926,11 @@ export default function App() {
             const uniqueCode = dealCodes[pid] || partner.deal_code || "";
             return (
               <div key={pid} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, marginBottom: 12, overflow: "hidden" }}>
-                <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => setExpandedDeal(expandedDeal === pid ? null : pid)}>
+                <div style={{ padding: "14px 16px 10px", cursor: "pointer" }} onClick={() => {
+                const opening = expandedDeal !== pid;
+                setExpandedDeal(opening ? pid : null);
+                if (opening) getOrCreateCodeForPartner(partner);
+              }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -924,16 +954,30 @@ export default function App() {
                 </div>
                 {expandedDeal === pid && (
                   <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", padding: "14px 16px" }}>
-                    {uniqueCode && (
-                      <div style={{ background: "rgba(255,213,79,0.1)", border: "1px solid rgba(255,213,79,0.3)", borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
-                        <div style={{ fontSize: 10, color: "#FFD54F", fontFamily: "Arial", fontWeight: 700, marginBottom: 4 }}>{tText.yourCode}</div>
-                        <div style={{ fontSize: 18, fontWeight: "bold", color: "white", fontFamily: "monospace", letterSpacing: 2 }}>{uniqueCode}</div>
-                      </div>
+                    {uniqueCode ? (
+                      <>
+                        {/* QR Code */}
+                        <div style={{ background: "white", borderRadius: 16, padding: 16, display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 12 }}>
+                          <QRCodeSVG
+                            value={`https://holamaya.lat/verify?code=${uniqueCode}`}
+                            size={180}
+                            bgColor="#ffffff"
+                            fgColor="#012A2A"
+                            level="M"
+                          />
+                          <div style={{ marginTop: 10, fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#012A2A", letterSpacing: 1 }}>{uniqueCode}</div>
+                          <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>
+                            {{ en: "Show this to the staff", es: "Mostrá esto al personal", fr: "Montrez ceci au personnel" }[lang]}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ textAlign: "center", padding: "10px 0 14px", color: "rgba(255,255,255,0.3)", fontSize: 12 }}>⏳ Generando código...</div>
                     )}
                     {redeem && <div style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", fontFamily: "Arial", lineHeight: 1.6, marginBottom: 12 }}>{redeem}</div>}
                     {partner.address && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontFamily: "Arial", marginBottom: 12 }}>📍 {partner.address}</div>}
                     {partner.whatsapp && (
-                      <button onClick={() => openWhatsApp(partner.whatsapp, `Hola! Vengo de Maya app con el código ${uniqueCode || partner.deal_code} 🌴`)}
+                      <button onClick={() => openWhatsApp(partner.whatsapp, `Hola! Vengo de Maya app con el código ${uniqueCode} 🌴`)}
                         style={{ width: "100%", background: "linear-gradient(135deg, #25D366, #128C7E)", border: "none", borderRadius: 12, color: "white", padding: "12px", fontSize: 14, fontWeight: "bold", cursor: "pointer", fontFamily: "Arial" }}>
                         📱 {tText.bookWhatsApp}
                       </button>
@@ -985,23 +1029,19 @@ export default function App() {
             {/* Expanded content */}
             {expandedDeal === deal.id && (
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "14px 16px 16px", background: "rgba(0,0,0,0.2)" }}>
-                {/* Code */}
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "Arial", marginBottom: 6 }}>{tText.yourCode}</div>
-                  <div style={{ background: "rgba(255,255,255,0.07)", border: "2px dashed rgba(255,255,255,0.2)", borderRadius: 10, padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontFamily: "monospace", fontSize: 18, fontWeight: "bold", color: "#FFD54F", letterSpacing: 2 }}>{uniqueCode}</span>
-                    <button onClick={() => {
-                      navigator.clipboard?.writeText(uniqueCode);
-                      alert(lang === "es" ? "¡Código copiado!" : lang === "fr" ? "Code copié!" : "Code copied!");
-                    }} style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "white", padding: "5px 12px", borderRadius: 6, fontSize: 11, cursor: "pointer", fontFamily: "Arial" }}>
-                      {lang === "es" ? "Copiar" : lang === "fr" ? "Copier" : "Copy"}
-                    </button>
+                {/* QR Code */}
+                <div style={{ background: "white", borderRadius: 16, padding: 16, display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 14 }}>
+                  <QRCodeSVG
+                    value={`https://holamaya.lat/verify?code=${uniqueCode}`}
+                    size={180}
+                    bgColor="#ffffff"
+                    fgColor="#012A2A"
+                    level="M"
+                  />
+                  <div style={{ marginTop: 10, fontFamily: "monospace", fontSize: 13, fontWeight: 700, color: "#012A2A", letterSpacing: 1 }}>{uniqueCode}</div>
+                  <div style={{ fontSize: 10, color: "#666", marginTop: 3 }}>
+                    {{ en: "Show this to the staff", es: "Mostrá esto al personal", fr: "Montrez ceci au personnel" }[lang]}
                   </div>
-                </div>
-
-                {/* How to use */}
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "Arial", marginBottom: 14, lineHeight: 1.6 }}>
-                  {{ en: "Show this code when you arrive, or tap the button below to WhatsApp them directly — the discount code is included automatically in your message.", es: "Muestra este código al llegar, o toca el botón para escribirles por WhatsApp — el código se incluye automáticamente en tu mensaje.", fr: "Montre ce code à l'arrivée, ou appuie sur le bouton pour leur écrire sur WhatsApp — le code est inclus automatiquement." }[lang]}
                 </div>
 
                 {/* WhatsApp CTA */}
