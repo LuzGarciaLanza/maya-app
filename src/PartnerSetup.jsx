@@ -4,25 +4,14 @@ const STORAGE_KEY = "maya_partner_edit_code";
 const ADMIN_SECRET = "MAYAADMIN2026";
 
 const CATEGORIES = [
-  { id: "food",        emoji: "🍽",  en: "Restaurants & Bars",  es: "Restaurantes & Bares",   fr: "Restaurants & Bars" },
-  { id: "tours",       emoji: "🤿",  en: "Tours & Activities",  es: "Tours & Actividades",    fr: "Excursions" },
-  { id: "wellness",    emoji: "💆",  en: "Wellness & Spa",      es: "Bienestar & Spa",         fr: "Bien-être & Spa" },
-  { id: "dental",      emoji: "🦷",  en: "Dental & Medical",    es: "Dental & Médico",         fr: "Dentaire & Médical" },
-  { id: "shopping",    emoji: "🛍",  en: "Shopping",            es: "Compras",                 fr: "Shopping" },
-  { id: "hotels",      emoji: "🏨",  en: "Hotels & Rentals",    es: "Hoteles & Rentals",       fr: "Hôtels & Locations" },
-  { id: "transport",   emoji: "🚕",  en: "Transport",           es: "Transporte",              fr: "Transport" },
-  { id: "experiences", emoji: "📸",  en: "Experiences",         es: "Experiencias",            fr: "Expériences" },
-];
-
-const COLORS = [
-  { value: "#00897B", label: "Teal" },
-  { value: "#FF6B35", label: "Orange" },
-  { value: "#1E88E5", label: "Blue" },
-  { value: "#8E24AA", label: "Purple" },
-  { value: "#43A047", label: "Green" },
-  { value: "#E53935", label: "Red" },
-  { value: "#F4511E", label: "Deep Orange" },
-  { value: "#4527A0", label: "Indigo" },
+  { id: "food",        emoji: "🍽",  color: "#FF6B35", en: "Restaurants & Bars",  es: "Restaurantes & Bares",   fr: "Restaurants & Bars" },
+  { id: "tours",       emoji: "🤿",  color: "#1E88E5", en: "Tours & Activities",  es: "Tours & Actividades",    fr: "Excursions" },
+  { id: "wellness",    emoji: "💆",  color: "#8E24AA", en: "Wellness & Spa",      es: "Bienestar & Spa",        fr: "Bien-être & Spa" },
+  { id: "dental",      emoji: "🦷",  color: "#00897B", en: "Dental & Medical",    es: "Dental & Médico",        fr: "Dentaire & Médical" },
+  { id: "shopping",    emoji: "🛍",  color: "#F4511E", en: "Shopping",            es: "Compras",                fr: "Shopping" },
+  { id: "hotels",      emoji: "🏨",  color: "#4527A0", en: "Hotels & Rentals",    es: "Hoteles & Rentals",      fr: "Hôtels & Locations" },
+  { id: "transport",   emoji: "🚕",  color: "#43A047", en: "Transport",           es: "Transporte",             fr: "Transport" },
+  { id: "experiences", emoji: "📸",  color: "#E53935", en: "Experiences",         es: "Experiencias",           fr: "Expériences" },
 ];
 
 const EMPTY = {
@@ -33,6 +22,15 @@ const EMPTY = {
   discount_fr: "", description_fr: "", savings_fr: "", how_to_redeem_fr: "",
   deal_code: "", color: "#00897B", emoji: "🏪", valid_until: "",
 };
+
+function colorForCategory(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  return cat ? cat.color : "#00897B";
+}
+function emojiForCategory(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  return cat ? cat.emoji : "🏪";
+}
 
 const S = {
   wrap: { minHeight: "100vh", background: "#012A2A", fontFamily: "'Poppins', sans-serif", color: "white", paddingBottom: 60 },
@@ -231,7 +229,7 @@ export default function PartnerSetup() {
           <label style={S.label}>Categoría *</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
             {CATEGORIES.map(cat => (
-              <button key={cat.id} onClick={() => setData(d => ({ ...d, category: cat.id }))}
+              <button key={cat.id} onClick={() => setData(d => ({ ...d, category: cat.id, color: cat.color, emoji: cat.emoji }))}
                 style={{ background: data.category === cat.id ? "rgba(0,172,193,0.2)" : "rgba(255,255,255,0.05)", border: `1px solid ${data.category === cat.id ? "rgba(0,172,193,0.5)" : "rgba(255,255,255,0.1)"}`, borderRadius: 10, color: data.category === cat.id ? "#4DD9E8" : "rgba(255,255,255,0.6)", padding: "9px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600, textAlign: "left", fontFamily: "'Poppins',sans-serif" }}>
                 {cat.emoji} {cat.es}
               </button>
@@ -265,18 +263,6 @@ export default function PartnerSetup() {
           </div>
         </div>
         <TextArea label="¿Cómo canjear?" name="how_to_redeem_es" value={data.how_to_redeem_es} onChange={handleChange} placeholder="Mencioná el código MAYA-FOGON al pedir la cuenta" />
-      </div>
-
-      <div style={S.section}>
-        <div style={S.sectionTitle}>🎨 Apariencia</div>
-        <label style={S.label}>Color del deal</label>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-          {COLORS.map(c => (
-            <button key={c.value} onClick={() => setData(d => ({ ...d, color: c.value }))}
-              style={{ width: 32, height: 32, borderRadius: "50%", background: c.value, border: data.color === c.value ? "3px solid white" : "2px solid transparent", cursor: "pointer" }} />
-          ))}
-        </div>
-        <Field label="Emoji del negocio" name="emoji" value={data.emoji} onChange={handleChange} placeholder="🌮" hint="Un emoji que represente tu negocio" />
       </div>
 
       <div style={S.section}>
